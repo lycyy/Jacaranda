@@ -1,11 +1,6 @@
 package com.example.service.Thread;
 
-import com.example.service.Bean.User;
 import com.example.service.Service.EmailService;
-import com.example.service.VerCodeGenerateUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
 
 
 public class EmailThread extends Thread {

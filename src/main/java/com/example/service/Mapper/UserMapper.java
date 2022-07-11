@@ -1,29 +1,64 @@
 package com.example.service.Mapper;
 
-import com.example.service.Bean.User;
-import com.example.service.Bean.UserInfo;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
-import org.springframework.cache.annotation.Cacheable;
+import com.example.service.Bean.In.Transaction;
+import com.example.service.Bean.Out.Bill;
+import com.example.service.Bean.In.User;
+import com.example.service.Bean.In.UserInfo;
+import org.apache.ibatis.annotations.*;
+
+import java.util.List;
 
 @Mapper
 public interface UserMapper {
 
-
-    @Insert("INSERT INTO users_table (Email,password) VALUES (#{Email},#{password})")
-    int addUser(User user);
-
-    @Select("SELECT * FROM users_table WHERE Email = #{email} ")
+    @Select("SELECT * FROM Users WHERE Email = #{email} ")
     User findUser(String email);
 
-    @Insert("INSERT INTO userinfo_table (UserID,email,username,Mnumber,paypassword) VALUES (#{UserID},#{email},#{username},#{Mnumber},#{paypassword})")
+    @Select("SELECT * FROM Users WHERE Email = #{email} and password = #{password} ")
+    User checkUser(User user);
+
+    @Select("SELECT count(*) FROM UserInfo WHERE Email = #{email} and payPassword = #{payPassword} ")
+    int checkPayPswd(String email , String payPassword);
+
+
+    @Select("SELECT * FROM Users WHERE UserID = #{UserID} ")
+    String findUserID(String UserID);
+
+    @Select("SELECT receiveUser,Amount,Date FROM Transaction WHERE payUser=#{payUser}")
+    List<Bill> selectBill(String payUser);
+
+    @Select("SELECT UserID FROM UserInfo WHERE Email = #{Email}")
+    String getUserId(String Email);
+
+    @Select("SELECT Balance FROM UserInfo WHERE UserID = #{UserID}")
+    String selectBalance(String UserID);
+
+
+    //插入
+    @Insert("INSERT INTO Transaction (payUser,receiveUser,Amount,Date) VALUES (#{payUser},#{receiveUser},#{Amount},#{Date})")
+    int transferTo(Transaction transaction);
+
+    @Insert("INSERT INTO UserInfo (UserID,Email,UserName,Mobile,payPassword,Balance) VALUES (#{UserID},#{email},#{username},#{Mnumber},#{paypassword},#{Balance})")
     int addUserInfo(UserInfo userInfo);
 
-    @Insert("INSERT INTO userinfo_table (UserID) VALUES (#{UserID})")
+    @Insert("INSERT INTO UserInfo (UserID) VALUES (#{UserID})")
     int addUserID(String UserID);
 
-    @Select("SELECT * FROM userinfo_table WHERE UserID = #{UserID} ")
-    String findUserID(String UserID);
+    @Insert("INSERT INTO Users (Email,Password) VALUES (#{email},#{password})")
+    int addUser(User user);
+
+
+    //更新
+    @Update("UPDATE UserInfo SET Balance=#{balance} WHERE UserID = #{UserID}")
+    void updateBalance(String balance,String UserID);
+
+    @Update("UPDATE Users SET Password = #{newPswd} WHERE Email = #{email}")
+    void changePswd(String newPswd, String email);
+
+    @Update("UPDATE UserInfo SET payPassword = #{newPayPswd} WHERE Email = #{email}")
+    void changePayPswd(String newPayPswd, String email);
+
+
+
 
 }

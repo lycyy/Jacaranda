@@ -12,11 +12,11 @@ public class Result implements Serializable {
 
 
 
-    public static Result success(Object data){
+    public static Result success(String msg){
         Result result = new Result();
         result.setCode("200");
-        result.setMsg("操作成功");
-        result.setData(data);
+        result.setMsg(msg);
+        result.setData(null);
         return result;
     }
 

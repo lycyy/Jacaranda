@@ -1,7 +1,7 @@
 package com.example.service.Service.ServiceImpl;
 
 import com.example.service.Service.EmailService;
-import com.example.service.VerCodeGenerateUtil;
+import com.example.service.Util.VerCodeGenerateUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -15,7 +15,7 @@ public class EmailServiceImpl implements EmailService {
     @Value("${spring.mail.username}")
     private String from;
 
-    private VerCodeGenerateUtil verCodeGenerateUtil;
+
 
 
     @Override

@@ -1,4 +1,4 @@
-package com.example.service.Bean;
+package com.example.service.Bean.In;
 
 public class UserInfo {
     private String UserID;
@@ -6,6 +6,15 @@ public class UserInfo {
     private String username;
     private String Mnumber;
     private String paypassword;
+    private String Balance;
+
+    public String getBalance() {
+        return Balance;
+    }
+
+    public void setBalance(String balance) {
+        Balance = balance;
+    }
 
     public String getUserID() {
         return UserID;
