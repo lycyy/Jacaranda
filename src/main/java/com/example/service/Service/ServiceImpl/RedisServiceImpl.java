@@ -7,6 +7,7 @@ import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class RedisServiceImpl implements RedisService {
@@ -21,7 +22,7 @@ public class RedisServiceImpl implements RedisService {
     @Override
     public void set(String key, String value) {
         ValueOperations<String, String> ops = stringRedisTemplate.opsForValue();
-        ops.set(key, value);
+        ops.set(key, value,60*3, TimeUnit.SECONDS);
 
     }
 

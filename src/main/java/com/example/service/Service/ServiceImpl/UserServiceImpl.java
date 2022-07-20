@@ -1,8 +1,10 @@
 package com.example.service.Service.ServiceImpl;
 
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.example.service.Bean.Code;
 import com.example.service.Bean.CreatePaymentResponse;
 import com.example.service.Bean.In.*;
+import com.example.service.Bean.Out.Balance;
 import com.example.service.Bean.Out.Bill;
 import com.example.service.Mapper.UserMapper;
 import com.example.service.Service.EmailService;
@@ -13,19 +15,23 @@ import com.example.service.Util.TokenUtil;
 import com.example.service.Util.VerCodeGenerateUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.gson.JsonSyntaxException;
 import com.stripe.Stripe;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.*;
 import com.stripe.net.ApiResource;
+import com.stripe.net.RequestOptions;
 import com.stripe.net.Webhook;
+import com.stripe.param.EphemeralKeyCreateParams;
 import com.stripe.param.PaymentIntentCreateParams;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -53,13 +59,13 @@ public class UserServiceImpl implements UserService {
     public int findUser(User user) {
         String email = user.getEmail();
         String password = user.getPassword();
-        User user1 = userMapper.findUser(email);
-        if (user1 == null) {
+        int num = userMapper.findUser(email);
+        if (num == 0) {
             String text = verCodeGenerateUtil.generateVerCode();
             redisService.set(email, password);
             redisService.set(text, email);
             System.out.println(text);
-            new EmailThread(user.getEmail(), "subject", text, emailService).start();
+//            new EmailThread(user.getEmail(), "subject", text, emailService).start();
             return 1;
         } else {
             return 0;
@@ -70,10 +76,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public int verifyUser(Code code) {
+
         String email = code.getEmail();
         String codes = code.getCode();
         String realemails = redisService.get(codes);
-
         if (email.equals(realemails)) {
             User user = new User();
             user.setEmail(email);
@@ -87,9 +93,22 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public int info(UserInfo userInfo) {
-
+        Stripe.apiKey = "sk_test_51LImNKAOiNy9BWzWHWwXKchph0iHIA8eySN5eDNYtxL9LLrNzFISXmTOHrjrpEnvbF1pKyRCaG9BcqnWXjcNNPnf00vUzWYyjr";
         String UserID = verCodeGenerateUtil.generateUserID();
-        if (userMapper.findUserID(UserID) == null) {
+        if (userMapper.findUserID(UserID) == 0) {
+            //获取customerid
+            String email = userInfo.getEmail();
+            Map<String, Object> params = new HashMap<>();
+            params.put("email", email);
+            Customer customer = null;
+            try {
+                customer = Customer.create(params);
+            } catch (StripeException e) {
+                e.printStackTrace();
+            }
+            String cid = customer.getId();
+            //注入属性
+            userInfo.setCustomerId(cid);
             userInfo.setUserID(UserID);
             userInfo.setBalance("0");
             userMapper.addUserInfo(userInfo);
@@ -102,13 +121,57 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public int checkUser(User user) {
+    public String checkUser(User user) {
         User user1 = userMapper.checkUser(user);
         if (user1 != null) {
-            return 1;
+            UserInfo userInfo = userMapper.getUserInfo(user.getEmail());
+            String token = tokenUtil.generateToken(user);
+            Map<String, Object> map = new HashMap<>();
+            map.put("UserID", userInfo.getUserID());
+            map.put("UserName", userInfo.getUsername());
+            map.put("token", token);
+
+            try {
+                json = objectMapper.writeValueAsString(map);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+
+            return json;
         } else {
-            return 0;
+            return "查询错误";
         }
+    }
+
+    @Override
+    public String testToken(String token) {
+        String userEmail = tokenUtil.getValue(token);
+        int num = userMapper.findUser(userEmail);
+        if (num == 0) {
+            return "用户不存在";
+        }
+
+        DecodedJWT decodedJWT= tokenUtil.verify(token);
+        int a = tokenUtil.getExpiresAt(decodedJWT);
+        if(a == 1){
+            String email = tokenUtil.getValue(token);
+            User users = new User();
+            users.setEmail(email);
+            String newToken = tokenUtil.generateToken(users);
+
+            String json = null;
+            try {
+               json = objectMapper.writeValueAsString(newToken);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+            return json;
+        }else {
+            return "验证成功";
+        }
+
+
+
     }
 
     //账单支付
@@ -120,6 +183,8 @@ public class UserServiceImpl implements UserService {
         //查询用户账单
         List<Bill> billList = userMapper.selectBill(userId);
         for (Bill bill : billList) {
+            String username = userMapper.selectUserName(bill.getReceiveUser());
+            bill.setReceiveUsername(username);
             if (bill.getReceiveUser().equals(userId)) {
                 bill.setType("top-up");
             } else {
@@ -127,10 +192,28 @@ public class UserServiceImpl implements UserService {
             }
         }
 
-
-
+        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS,false);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        objectMapper.setDateFormat(sdf);
         try {
             json = objectMapper.writeValueAsString(billList);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        return json;
+    }
+
+    @Override
+    public String selectBalanceOf(String token) {
+        //从Token中获取信息
+        String userEmail = tokenUtil.getValue(token);
+        String userId = userMapper.getUserId(userEmail);
+        String balanceOf = userMapper.selectBalance(userId);
+        Balance balance = new Balance();
+        balance.setBalanceof(balanceOf);
+        try {
+            json = objectMapper.writeValueAsString(balance);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
@@ -183,16 +266,38 @@ public class UserServiceImpl implements UserService {
     }
 
     //充值
-
-
     @Override
-    public String createPaymentIntent(Amount Amounts) {
+    public String createPaymentIntent(Amount Amounts, String token) {
         Map<String, Object> map = new HashMap<>();
         Stripe.apiKey = "sk_test_51LImNKAOiNy9BWzWHWwXKchph0iHIA8eySN5eDNYtxL9LLrNzFISXmTOHrjrpEnvbF1pKyRCaG9BcqnWXjcNNPnf00vUzWYyjr";
+        String receiveEmail = tokenUtil.getValue(token);
+        String cid = userMapper.getCustomerId(receiveEmail);
+
+        EphemeralKeyCreateParams ephemeralKeyParams =
+                EphemeralKeyCreateParams.builder()
+                        .setCustomer(cid)
+                        .build();
+
+        RequestOptions ephemeralKeyOptions =
+                RequestOptions.builder()
+                        .setStripeVersionOverride("2020-08-27")
+                        .build();
+
+        EphemeralKey ephemeralKey = null;
+        try {
+            ephemeralKey = EphemeralKey.create(
+                    ephemeralKeyParams,
+                    ephemeralKeyOptions);
+        } catch (StripeException e) {
+            e.printStackTrace();
+        }
+
+        int realAmount = Integer.parseInt(Amounts.getAmounts()) * 100;
         PaymentIntentCreateParams params =
                 PaymentIntentCreateParams.builder()
-                        .setAmount((long) Integer.parseInt(Amounts.getAmounts()))
+                        .setAmount((long) realAmount)
                         .setCurrency("eur")
+                        .setCustomer(cid)
                         .setAutomaticPaymentMethods(
                                 PaymentIntentCreateParams.AutomaticPaymentMethods
                                         .builder()
@@ -211,6 +316,11 @@ public class UserServiceImpl implements UserService {
 
         CreatePaymentResponse paymentResponse = new CreatePaymentResponse(paymentIntent.getClientSecret());
         map.put("clientSecret", paymentResponse.getClientSecret());
+        map.put("paymentIntent", paymentIntent.getClientSecret());
+        map.put("ephemeralKey", ephemeralKey.getSecret());
+        map.put("customer", cid);
+        map.put("publishableKey", "pk_test_51LImNKAOiNy9BWzWmrjh6L2oHrjbNtPDxaBkavZ4yJnFqy6bDUutFcvZLUFfC5enOPGNDIuTLHISMUes2m5mc0yJ00H7FnRIcj");
+
         try {
             json = objectMapper.writeValueAsString(map);
         } catch (JsonProcessingException e) {
@@ -220,17 +330,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void webhook(String payload,String sigHeader) {
+    public String webhook(String payload, String sigHeader) {
         Event event = null;
 
-        String endpointSecret = "whsec_52374beff821539be93da3f37f381a042274f3ac13515715ac8dbea18cdc9d42";
+        String amount;
+
+        String endpointSecret = "whsec_3Ea8HDJjKnVXx1OWLQqYgLUH16EUwAEg";
 
         try {
             event = ApiResource.GSON.fromJson(payload, Event.class);
         } catch (JsonSyntaxException e) {
             // Invalid payload
             System.out.println("️  Webhook error while parsing basic request.");
-
+            return "";
         }
         if (endpointSecret != null && sigHeader != null) {
             // Only verify the event if you have an endpoint secret defined.
@@ -242,7 +354,7 @@ public class UserServiceImpl implements UserService {
             } catch (SignatureVerificationException e) {
                 // Invalid signature
                 System.out.println("️  Webhook error while validating signature.");
-
+                return "";
             }
         }
         // Deserialize the nested object inside the event
@@ -258,8 +370,14 @@ public class UserServiceImpl implements UserService {
         // Handle the event
         switch (event.getType()) {
             case "payment_intent.succeeded":
+
                 PaymentIntent paymentIntent = (PaymentIntent) stripeObject;
-                System.out.println("Payment for " + paymentIntent.getAmount() + " succeeded.");
+                String cid = paymentIntent.getCustomer();
+                long a = paymentIntent.getAmount() / 100;
+                System.out.println("Payment for " + a + " succeeded.");
+                System.out.println("cid:" + cid + " succeeded.");
+                amount = String.valueOf(a);
+                addBalance(amount, cid);
                 // Then define and call a method to handle the successful payment intent.
                 // handlePaymentIntentSucceeded(paymentIntent);
                 break;
@@ -273,9 +391,31 @@ public class UserServiceImpl implements UserService {
                 break;
         }
 
-        return;
+        return "success";
     }
 
+    @Override
+    public String addBalance(String amount, String cid) {
+        String balance = userMapper.getBalance(cid);
+        //获取时间
+        Date date = new Date();
+        Timestamp time = new Timestamp(date.getTime());
+        //计算新余额
+        float a = Float.parseFloat(amount);
+        float b = Float.parseFloat(balance);
+        float balances = a + b;
+        userMapper.updateBalances(String.valueOf(balances), cid);
+
+        //添加充值记录
+        String userid = userMapper.getUserIdby_cid(cid);
+        Transaction transaction = new Transaction();
+        transaction.setPayUser(userid);
+        transaction.setReceiveUser(userid);
+        transaction.setAmount(String.valueOf(a));
+        transaction.setDate(time);
+        userMapper.transferTo(transaction);
+        return "success";
+    }
 
     //信息修改
     @Override
@@ -305,4 +445,72 @@ public class UserServiceImpl implements UserService {
             return 0;
         }
     }
+
+    @Override
+    public int changeUsername(Username username, String token) {
+        String receiveEmail = tokenUtil.getValue(token);
+        try {
+            userMapper.changeUsername(username.getUsername(), receiveEmail);
+            return 1;
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    //忘记密码
+
+    @Override
+    public int sendEmail(User user) {
+        String email = user.getEmail();
+        String text = verCodeGenerateUtil.generateVerCode();
+        redisService.set(text, email);
+        System.out.println(text);
+//          new EmailThread(user.getEmail(), "subject", text, emailService).start();
+        return 1;
+    }
+    //验证码
+
+    @Override
+    public int testcode(Code code) {
+        String email = code.getEmail();
+        String codes = code.getCode();
+        String realemails = redisService.get(codes);
+        if (email.equals(realemails)) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+    @Override
+    public int setPswd(User user) {
+        String email = user.getEmail();
+        String pswd = user.getPassword();
+        if (userMapper.findUser(email) != 0) {
+            userMapper.changePswd(pswd, email);
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+    @Override
+    public String getInfo(String token) {
+        String receiveEmail = tokenUtil.getValue(token);
+        UserInfo userInfo = userMapper.getUserInfo(receiveEmail);
+        Map<String, Object> map = new HashMap<>();
+        map.put("UserID", userInfo.getUserID());
+        map.put("Email", userInfo.getEmail());
+        map.put("UserName", userInfo.getUsername());
+        map.put("Mobile", userInfo.getMobile());
+        try {
+            json = objectMapper.writeValueAsString(map);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return json;
+    }
 }
+
+
+

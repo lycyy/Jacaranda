@@ -2,28 +2,31 @@ package com.example.service.Util;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.example.service.Bean.In.User;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
+import java.sql.Timestamp;
+import java.util.Calendar;
 import java.util.Date;
 
 @Component
 public class TokenUtil {
+    private static final long currentTime = System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000;//一周
     public TokenUtil() {
     }
-    Algorithm algorithm = Algorithm.HMAC256("secret");
+    String sign = "secret";
+    Algorithm algorithm = Algorithm.HMAC256(sign);
 
     //生成Token
     public String generateToken(User user){
-        Date start = new Date();
-        long currentTime = System.currentTimeMillis() + 60 * 60 * 1000;//一小时
-        Date end = new Date();
+
+        Date date = new Date(currentTime);
         String token;
         token = JWT.create()
                 .withAudience(user.getEmail())
-                .withIssuedAt(start)
-                .withExpiresAt(end)
+                .withExpiresAt(date)
                 .sign(algorithm);
         return token;
     }
@@ -38,12 +41,28 @@ public class TokenUtil {
         return value;
     }
 
-//    public Boolean getTokens(String token){
-//        JWTVerifier verifier = JWT.require(algorithm)
-//                .build();
-//        DecodedJWT jwt = verifier.verify(token);
-//        System.out.println(jwt);
-//        return true;
-//
-//    }
+    public int getExpiresAt(DecodedJWT decodedJWT){
+        Date date = new Date();
+        Date JWTdate = decodedJWT.getExpiresAt();
+        Calendar calender1 = Calendar.getInstance();
+        Calendar calender2 = Calendar.getInstance();
+        calender1.setTime(date);
+        calender2.setTime(JWTdate);
+
+        int dates = calender1.get(Calendar.DATE);
+        int JWTdates = calender2.get(Calendar.DATE);
+
+        int refresh = JWTdates - dates;
+        if(refresh <= 2){
+            return 1;
+        }else {
+            return 0;
+        }
+
+    }
+
+    public  DecodedJWT verify(String token){
+        return JWT.require(algorithm).build().verify(token);
+    }
+
 }

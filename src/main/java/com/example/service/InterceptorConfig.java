@@ -21,7 +21,10 @@ public class InterceptorConfig implements WebMvcConfigurer {
                 .excludePathPatterns("/code")
                 .excludePathPatterns("/info")
                 .excludePathPatterns("/login")
-                .excludePathPatterns("/webhook");
+                .excludePathPatterns("/webhook")
+                .excludePathPatterns("/testcode")
+                .excludePathPatterns("/setPswd")
+                .excludePathPatterns("/forgotPswd");
         }
     }
 

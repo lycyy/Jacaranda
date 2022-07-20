@@ -4,9 +4,18 @@ public class UserInfo {
     private String UserID;
     private String email;
     private String username;
-    private String Mnumber;
+    private String Mobile;
     private String paypassword;
     private String Balance;
+    private String CustomerId;
+
+    public String getCustomerId() {
+        return CustomerId;
+    }
+
+    public void setCustomerId(String customerId) {
+        CustomerId = customerId;
+    }
 
     public String getBalance() {
         return Balance;
@@ -40,12 +49,12 @@ public class UserInfo {
         this.username = username;
     }
 
-    public String getMnumber() {
-        return Mnumber;
+    public String getMobile() {
+        return Mobile;
     }
 
-    public void setMnumber(String mnumber) {
-        Mnumber = mnumber;
+    public void setMobile(String mobile) {
+        Mobile = mobile;
     }
 
     public String getPaypassword() {

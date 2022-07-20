@@ -5,6 +5,7 @@ import java.sql.Timestamp;
 public class Bill {
     private String type;
     private String receiveUser;
+    private String receiveUsername;
     private String Amount;
     private Timestamp Date;
 
@@ -22,6 +23,14 @@ public class Bill {
 
     public void setReceiveUser(String receiveUser) {
         this.receiveUser = receiveUser;
+    }
+
+    public String getReceiveUsername() {
+        return receiveUsername;
+    }
+
+    public void setReceiveUsername(String receiveUsername) {
+        this.receiveUsername = receiveUsername;
     }
 
     public String getAmount() {

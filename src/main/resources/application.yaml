@@ -24,7 +24,7 @@ spring:
     # redis 端口号
     port: 6379
     # redis 密码
-    #password:
+    password: 2007360266
     # 连接超时时间（毫秒）
     timeout: 1000
     lettuce:
