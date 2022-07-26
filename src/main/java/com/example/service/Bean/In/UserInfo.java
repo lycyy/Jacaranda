@@ -8,6 +8,7 @@ public class UserInfo {
     private String paypassword;
     private String Balance;
     private String CustomerId;
+    private String PictureName;
 
     public String getCustomerId() {
         return CustomerId;
@@ -63,5 +64,13 @@ public class UserInfo {
 
     public void setPaypassword(String paypassword) {
         this.paypassword = paypassword;
+    }
+
+    public String getPictureName() {
+        return PictureName;
+    }
+
+    public void setPictureName(String pictureName) {
+        PictureName = pictureName;
     }
 }

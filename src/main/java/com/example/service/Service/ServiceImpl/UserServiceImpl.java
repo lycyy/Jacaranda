@@ -111,6 +111,7 @@ public class UserServiceImpl implements UserService {
             userInfo.setCustomerId(cid);
             userInfo.setUserID(UserID);
             userInfo.setBalance("0");
+            userInfo.setPictureName("R.png");
             userMapper.addUserInfo(userInfo);
         } else {
             String UserIDS = verCodeGenerateUtil.generateUserID();

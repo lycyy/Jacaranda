@@ -35,6 +35,9 @@ public interface UserMapper {
     @Select("SELECT UserID,Email,UserName,Mobile FROM UserInfo WHERE Email = #{Email}")
     UserInfo getUserInfo(String Email);
 
+    @Select("SELECT PictureName FROM UserInfo WHERE Email = #{Email}")
+    String getPictureName(String Email);
+
     @Select("SELECT CustomerId FROM UserInfo WHERE Email = #{Email}")
     String getCustomerId(String Email);
 
@@ -52,7 +55,7 @@ public interface UserMapper {
     @Insert("INSERT INTO Transaction (payUser,receiveUser,Amount,Date) VALUES (#{payUser},#{receiveUser},#{Amount},#{Date})")
     int transferTo(Transaction transaction);
 
-    @Insert("INSERT INTO UserInfo (UserID,Email,UserName,Mobile,payPassword,Balance,CustomerId) VALUES (#{UserID},#{email},#{username},#{Mobile},#{paypassword},#{Balance},#{CustomerId})")
+    @Insert("INSERT INTO UserInfo (UserID,Email,UserName,Mobile,payPassword,Balance,CustomerId,PictureName) VALUES (#{UserID},#{email},#{username},#{Mobile},#{paypassword},#{Balance},#{CustomerId},#{PictureName})")
     int addUserInfo(UserInfo userInfo);
 
     @Insert("INSERT INTO UserInfo (CustomerId) VALUES (#{id})")
@@ -61,8 +64,11 @@ public interface UserMapper {
     @Insert("INSERT INTO UserInfo (UserID) VALUES (#{UserID})")
     int addUserID(String UserID);
 
+
     @Insert("INSERT INTO Users (Email,Password) VALUES (#{email},#{password})")
     int addUser(User user);
+
+
 
 
     //更新
@@ -80,6 +86,10 @@ public interface UserMapper {
 
     @Update("UPDATE UserInfo SET UserName = #{username} WHERE Email = #{email}")
     void changeUsername(String username, String email);
+
+    @Update("UPDATE UserInfo SET PictureName = #{PictureName} WHERE Email = #{email}")
+    void updatePictureName(String PictureName, String email);
+
 
 
 

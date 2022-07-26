@@ -5,9 +5,14 @@ import com.example.service.Bean.In.*;
 import com.example.service.Bean.Out.Balance;
 import com.example.service.Service.UserService;
 import com.example.service.Util.TokenUtil;
+import com.example.service.Util.VerCodeGenerateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
 
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,6 +32,9 @@ public class UserController {
 
     @PostMapping("/email")
     public Result email(@RequestBody User user) {
+
+        System.out.println("email:"+new Date(System.currentTimeMillis()));
+        System.out.println("-----------------------------------------------------------------------------------------------");
         int num = userService.findUser(user);
         if (num == 1) {
             return Result.success("请输入验证码", user);
@@ -37,6 +45,8 @@ public class UserController {
 
     @PostMapping("/code")
     public Result code(@RequestBody Code code) {
+        System.out.println("code:"+new Date(System.currentTimeMillis()));
+        System.out.println("-----------------------------------------------------------------------------------------------");
         int num = userService.verifyUser(code);
         if (num == 1) {
             return Result.success("验证成功");
@@ -47,6 +57,8 @@ public class UserController {
 
     @PostMapping("/info")
     public Result info(@RequestBody UserInfo userInfo) {
+        System.out.println("info:"+new Date(System.currentTimeMillis()));
+        System.out.println("-----------------------------------------------------------------------------------------------");
         int num = userService.info(userInfo);
         if (num == 1) {
             return Result.success("注册成功");
@@ -57,6 +69,8 @@ public class UserController {
 
     @PostMapping("/login")
     public Result login(@RequestBody User user) {
+        System.out.println("login:"+new Date(System.currentTimeMillis()));
+        System.out.println("-----------------------------------------------------------------------------------------------");
         String json = userService.checkUser(user);
         if (json.equals("查询错误")) {
 
@@ -71,6 +85,8 @@ public class UserController {
 
     @PostMapping("/testcode")
     public Result testcode(@RequestBody Code code) {
+        System.out.println("testcode:"+new Date(System.currentTimeMillis()));
+        System.out.println("-----------------------------------------------------------------------------------------------");
         int num = userService.testcode(code);
         Result result = new Result();
         if (num == 1) {
@@ -83,6 +99,8 @@ public class UserController {
 
     @PostMapping("/testToken")
     public Result testToken(@RequestHeader(value = "token") String token) {
+        System.out.println("testToken:"+new Date(System.currentTimeMillis()));
+        System.out.println("-----------------------------------------------------------------------------------------------");
         String json = userService.testToken(token);
         Result result = new Result();
         if (json.equals("用户不存在")) {
@@ -99,6 +117,8 @@ public class UserController {
     //账单支付
     @PostMapping("/bill")
     public Result selectBill(@RequestHeader(value = "token") String token) {
+        System.out.println("bill:"+new Date(System.currentTimeMillis()));
+        System.out.println("-----------------------------------------------------------------------------------------------");
 
         String bill = userService.selectBill(token);
 
@@ -107,6 +127,8 @@ public class UserController {
 
     @PostMapping("/balanceOf")
     public Result selectbalanceOf(@RequestHeader(value = "token") String token) {
+        System.out.println("balanceOf:"+new Date(System.currentTimeMillis()));
+        System.out.println("-----------------------------------------------------------------------------------------------");
         String balanceOf = userService.selectBalanceOf(token);
 
 
@@ -115,6 +137,8 @@ public class UserController {
 
     @PostMapping("/transfer")
     public Result transferTo(@RequestBody UserID userID, @RequestHeader(value = "token") String token) {
+        System.out.println("transfer:"+new Date(System.currentTimeMillis()));
+        System.out.println("-----------------------------------------------------------------------------------------------");
         Result result = new Result();
         int num = userService.transferTo(userID, token);
         if (num == 0) {
@@ -128,6 +152,8 @@ public class UserController {
 
     @PostMapping("/checkPayPswd")
     public Result checkPayPswd(@RequestBody PayPswd payPswd, @RequestHeader(value = "token") String token) {
+        System.out.println("checkPayPswd:"+new Date(System.currentTimeMillis()));
+        System.out.println("-----------------------------------------------------------------------------------------------");
         Result result = new Result();
         int num = userService.checkPayPswd(payPswd.getPayPswd(), token);
         if (num == 1) {
@@ -142,6 +168,8 @@ public class UserController {
     //充值
     @PostMapping("/create-payment-intent")
     public Result createPaymentIntent(@RequestBody Amount Amounts, @RequestHeader(value = "token") String token) {
+        System.out.println("create-payment-intent:"+new Date(System.currentTimeMillis()));
+        System.out.println("-----------------------------------------------------------------------------------------------");
         String json = userService.createPaymentIntent(Amounts, token);
         Result result = new Result();
         result = result.success("success", json);
@@ -150,6 +178,8 @@ public class UserController {
 
     @PostMapping("/webhook")
     public Result webhook(@RequestBody String payload, @RequestHeader(value = "Stripe-Signature") String sigHeader) {
+        System.out.println("webhook:"+new Date(System.currentTimeMillis()));
+        System.out.println("-----------------------------------------------------------------------------------------------");
         userService.webhook(payload, sigHeader);
         return null;
     }
@@ -158,6 +188,8 @@ public class UserController {
     //用户信息
     @PostMapping("/getInfo")
     public Result getInfo(@RequestHeader(value = "token") String token) {
+        System.out.println("getInfo:"+new Date(System.currentTimeMillis()));
+        System.out.println("-----------------------------------------------------------------------------------------------");
         String json = userService.getInfo(token);
 
         return Result.success("查询成功", json);
@@ -166,6 +198,8 @@ public class UserController {
 
     @PostMapping("/changePswd")
     public Result changePswd(@RequestBody UserPswd userPswd, @RequestHeader(value = "token") String token) {
+        System.out.println("changePswd:"+new Date(System.currentTimeMillis()));
+        System.out.println("-----------------------------------------------------------------------------------------------");
         int num = userService.changePswd(userPswd, token);
         Result result = new Result();
         if (num == 1) {
@@ -180,6 +214,8 @@ public class UserController {
 
     @PostMapping("/changePayPswd")
     public Result changePayPswd(@RequestBody UserPayPswd userPayPswd, @RequestHeader(value = "token") String token) {
+        System.out.println("changePayPswd:"+new Date(System.currentTimeMillis()));
+        System.out.println("-----------------------------------------------------------------------------------------------");
         int num = userService.changePayPswd(userPayPswd, token);
         Result result = new Result();
 
@@ -195,6 +231,8 @@ public class UserController {
 
     @PostMapping("/changeUsername")
     public Result changeUsername(@RequestBody Username username, @RequestHeader(value = "token") String token) {
+        System.out.println("changeUsername:"+new Date(System.currentTimeMillis()));
+        System.out.println("-----------------------------------------------------------------------------------------------");
         int num = userService.changeUsername(username, token);
         Result result = new Result();
         if (num == 1) {
@@ -208,6 +246,8 @@ public class UserController {
 
     @PostMapping("/sendCode")
     public Result forgotPswd(@RequestBody User user) {
+        System.out.println("sendCode:"+new Date(System.currentTimeMillis()));
+        System.out.println("-----------------------------------------------------------------------------------------------");
         int num = userService.sendEmail(user);
         Result result = new Result();
         if (num == 1) {
@@ -218,6 +258,8 @@ public class UserController {
 
     @PostMapping("/setPswd")
     public Result setPswd(@RequestBody User user) {
+        System.out.println("setPswd:"+new Date(System.currentTimeMillis()));
+        System.out.println("-----------------------------------------------------------------------------------------------");
         int num = userService.setPswd(user);
         Result result = new Result();
         if (num == 1) {
@@ -230,4 +272,10 @@ public class UserController {
 
 
 }
+
+
+
+
+
+
 

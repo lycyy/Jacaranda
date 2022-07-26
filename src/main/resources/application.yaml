@@ -4,7 +4,11 @@ spring:
     username: root
     password: ukSAseeS5wID7pSx
     driver-class-name: com.mysql.cj.jdbc.Driver
-
+  servlet:
+    multipart:
+      max-file-size: 1024MB
+      max-request-size: 1024MB
+      enabled: true
   mail:
     host: smtp.office365.com
     username: cc233233233@outlook.com
