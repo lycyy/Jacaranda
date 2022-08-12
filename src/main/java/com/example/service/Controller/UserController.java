@@ -2,19 +2,17 @@ package com.example.service.Controller;
 
 import com.example.service.Bean.*;
 import com.example.service.Bean.In.*;
-import com.example.service.Bean.Out.Balance;
+import com.example.service.Mapper.UserMapper;
+import com.example.service.Service.ServiceImpl.WebSocketService;
 import com.example.service.Service.UserService;
 import com.example.service.Util.TokenUtil;
-import com.example.service.Util.VerCodeGenerateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 
+import javax.websocket.server.PathParam;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @ResponseBody
@@ -23,6 +21,11 @@ public class UserController {
     UserService userService;
     @Autowired
     TokenUtil tokenUtil;
+    @Autowired
+    UserMapper userMapper;
+
+    @Autowired
+    WebSocketService webSocketService;
 
     //注册登录
     @RequestMapping("/")
@@ -140,12 +143,13 @@ public class UserController {
         System.out.println("transfer:"+new Date(System.currentTimeMillis()));
         System.out.println("-----------------------------------------------------------------------------------------------");
         Result result = new Result();
-        int num = userService.transferTo(userID, token);
-        if (num == 0) {
-            result = result.fail("余额不足");
-        }
+        int num = userService.transferTo(userID,token);
         if (num == 1) {
             result = result.success("支付成功");
+        }else if (num == 0) {
+            result = result.fail("余额不足");
+        } else if (num == -1) {
+            result = result.fail("连接超时");
         }
         return result;
     }
@@ -162,6 +166,14 @@ public class UserController {
             result = result.fail("密码错误");
         }
         return result;
+    }
+
+    @PostMapping("/test")
+    public Result test(@RequestHeader(value = "token") String token){
+        String receiveEmail = tokenUtil.getValue(token);
+        String receiveUser = userMapper.getUserId(receiveEmail);
+        webSocketService.sendMessage("success", Long.parseLong(receiveUser));
+        return null;
     }
 
 

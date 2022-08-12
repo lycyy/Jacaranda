@@ -1,6 +1,6 @@
 package com.example.service.Service;
 
-import com.example.service.Bean.Code;
+import com.example.service.Bean.In.Code;
 import com.example.service.Bean.In.*;
 import org.springframework.stereotype.Service;
 
@@ -25,4 +25,5 @@ public interface UserService {
     public String webhook(String payload,String sigHeader);
     public int changeUsername(Username username, String token);
     public String getInfo(String token);
+    public int transfer(UserID userId,String token);
 }

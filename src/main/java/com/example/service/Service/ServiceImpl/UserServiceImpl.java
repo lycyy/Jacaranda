@@ -1,7 +1,7 @@
 package com.example.service.Service.ServiceImpl;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.example.service.Bean.Code;
+import com.example.service.Bean.In.Code;
 import com.example.service.Bean.CreatePaymentResponse;
 import com.example.service.Bean.In.*;
 import com.example.service.Bean.Out.Balance;
@@ -10,7 +10,6 @@ import com.example.service.Mapper.UserMapper;
 import com.example.service.Service.EmailService;
 import com.example.service.Service.RedisService;
 import com.example.service.Service.UserService;
-import com.example.service.Thread.EmailThread;
 import com.example.service.Util.TokenUtil;
 import com.example.service.Util.VerCodeGenerateUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -49,6 +48,8 @@ public class UserServiceImpl implements UserService {
     public TokenUtil tokenUtil;
     @Autowired
     VerCodeGenerateUtil verCodeGenerateUtil;
+    @Autowired
+    WebSocketService webSocketService;
 
     ObjectMapper objectMapper = new ObjectMapper();
 
@@ -223,8 +224,42 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(rollbackFor = {RuntimeException.class, Error.class})
     public int transferTo(UserID userId, String token) {
+
+        long t = 0;
+        String value = new String();
+        //获取时间
+        Date before = new Date();
+
+        String payUser = userId.getUserID();
+
+        webSocketService.sendMessage("Verify Paypassword", Long.parseLong(payUser));
+
+        while (t<=90) {
+            Date now = new Date();
+            t = (now.getTime() - before.getTime())/1000;
+            value = redisService.get(payUser);
+            if(value != null){
+                break;
+            }
+        }
+            if(value == null){
+                return -1;
+            }
+
+            int a = transfer(userId,token);
+            redisService.remove(payUser);
+            if (a == 1) {
+                return 1;
+            }else {
+                return 0;
+            }
+
+    }
+
+    @Override
+    @Transactional(rollbackFor = {RuntimeException.class, Error.class})
+    public int transfer(UserID userId, String token) {
         //获取时间
         Date date = new Date();
         Timestamp time = new Timestamp(date.getTime());
@@ -234,7 +269,6 @@ public class UserServiceImpl implements UserService {
         float amount = Float.parseFloat(userId.getAmount());
         String receiveEmail = tokenUtil.getValue(token);
         String receiveUser = userMapper.getUserId(receiveEmail);
-
         float payBalance = Float.parseFloat(userMapper.selectBalance(payUser));
         float receiveBalance = Float.parseFloat(userMapper.selectBalance(receiveUser));
 
@@ -257,9 +291,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public int checkPayPswd(String PayPswd, String token) {
-        String receiveEmail = tokenUtil.getValue(token);
-        int num = userMapper.checkPayPswd(receiveEmail, PayPswd);
+        String payEmail = tokenUtil.getValue(token);
+        String payUser = userMapper.getUserId(payEmail);
+        int num = userMapper.checkPayPswd(payEmail, PayPswd);
         if (num == 1) {
+            redisService.set(payUser, "true");
             return 1;
         } else {
             return 0;

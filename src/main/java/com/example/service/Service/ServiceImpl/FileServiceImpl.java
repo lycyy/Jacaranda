@@ -1,6 +1,5 @@
 package com.example.service.Service.ServiceImpl;
 
-import com.example.service.Bean.FileName;
 import com.example.service.Mapper.UserMapper;
 import com.example.service.Service.FileService;
 import com.example.service.Util.TokenUtil;

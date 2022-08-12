@@ -1,4 +1,4 @@
-package com.example.service.Bean;
+package com.example.service.Bean.In;
 
 public class FileName {
     private String filename;
