@@ -35,8 +35,8 @@ public interface UserMapper {
     @Select("SELECT UserID,Email,UserName,Mobile FROM UserInfo WHERE Email = #{Email}")
     UserInfo getUserInfo(String Email);
 
-    @Select("SELECT PictureName FROM UserInfo WHERE Email = #{Email}")
-    String getPictureName(String Email);
+    @Select("SELECT PictureName FROM UserInfo WHERE UserName = #{UserName}")
+    String getPictureName(String UserName);
 
     @Select("SELECT CustomerId FROM UserInfo WHERE Email = #{Email}")
     String getCustomerId(String Email);

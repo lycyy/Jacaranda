@@ -1,13 +1,13 @@
 package com.example.service.Bean.In;
 
 public class Username {
-    private String username;
+    private String usernames;
 
-    public String getUsername() {
-        return username;
+    public String getUsernames() {
+        return usernames;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setUsernames(String usernames) {
+        this.usernames = usernames;
     }
 }

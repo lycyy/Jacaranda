@@ -14,7 +14,9 @@ public interface UserService {
     public String selectBill(String token);
     public String selectBalanceOf(String token);
     public String addBalance(String amount,String cid);
+    public int Verify(UserID userId,String token);
     public int transferTo(UserID userId,String token);
+    public int checkId(UserID userId,String token);
     public int changePswd(UserPswd userPswd,String token);
     public int changePayPswd(UserPayPswd userPayPswd, String token);
     public int checkPayPswd(String PayPswd, String token);

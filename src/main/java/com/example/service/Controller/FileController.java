@@ -1,6 +1,9 @@
 package com.example.service.Controller;
 
 
+import com.example.service.Bean.In.User;
+import com.example.service.Bean.In.UserInfo;
+import com.example.service.Bean.In.Username;
 import com.example.service.Bean.Result;
 import com.example.service.Service.FileService;
 
@@ -37,10 +40,10 @@ public class FileController {
 
 
     @PostMapping(value = "/Download")
-    public ResponseEntity<FileSystemResource> downloadImage(@RequestHeader(value = "token") String token){
+    public ResponseEntity<FileSystemResource> downloadImage(@RequestBody Username username){
         System.out.println("Download:"+new Date(System.currentTimeMillis()));
         System.out.println("-----------------------------------------------------------------------------------------------");
-        ResponseEntity<FileSystemResource> file = fileService.download(token);
+        ResponseEntity<FileSystemResource> file = fileService.download(username.getUsernames());
         return file;
     }
 }

@@ -153,9 +153,9 @@ public class UserServiceImpl implements UserService {
             return "用户不存在";
         }
 
-        DecodedJWT decodedJWT= tokenUtil.verify(token);
+        DecodedJWT decodedJWT = tokenUtil.verify(token);
         int a = tokenUtil.getExpiresAt(decodedJWT);
-        if(a == 1){
+        if (a == 1) {
             String email = tokenUtil.getValue(token);
             User users = new User();
             users.setEmail(email);
@@ -163,15 +163,14 @@ public class UserServiceImpl implements UserService {
 
             String json = null;
             try {
-               json = objectMapper.writeValueAsString(newToken);
+                json = objectMapper.writeValueAsString(newToken);
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
             }
             return json;
-        }else {
+        } else {
             return "验证成功";
         }
-
 
 
     }
@@ -194,7 +193,7 @@ public class UserServiceImpl implements UserService {
             }
         }
 
-        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS,false);
+        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         objectMapper.setDateFormat(sdf);
         try {
@@ -223,8 +222,9 @@ public class UserServiceImpl implements UserService {
         return json;
     }
 
+    //发送付款请求
     @Override
-    public int transferTo(UserID userId, String token) {
+    public int Verify(UserID userId, String token) {
 
         long t = 0;
         String value = new String();
@@ -235,28 +235,29 @@ public class UserServiceImpl implements UserService {
 
         webSocketService.sendMessage("Verify Paypassword", Long.parseLong(payUser));
 
-        while (t<=90) {
+        while (t <= 90) {
             Date now = new Date();
-            t = (now.getTime() - before.getTime())/1000;
+            t = (now.getTime() - before.getTime()) / 1000;
             value = redisService.get(payUser);
-            if(value != null){
+            if (value != null) {
                 break;
             }
         }
-            if(value == null){
-                return -1;
-            }
+        if (value == null) {
+            return -1;
+        }
 
-            int a = transfer(userId,token);
-            redisService.remove(payUser);
-            if (a == 1) {
-                return 1;
-            }else {
-                return 0;
-            }
+        int a = transfer(userId, token);
+        redisService.remove(payUser);
+        if (a == 1) {
+            return 1;
+        } else {
+            return 0;
+        }
 
     }
 
+    //完成转账流程
     @Override
     @Transactional(rollbackFor = {RuntimeException.class, Error.class})
     public int transfer(UserID userId, String token) {
@@ -300,6 +301,57 @@ public class UserServiceImpl implements UserService {
         } else {
             return 0;
         }
+    }
+
+    //个人转账
+    @Override
+    public int checkId(UserID userId,String token) {
+        int a = userMapper.findUserID(userId.getUserID());
+        String payEmail = tokenUtil.getValue(token);
+        String payUser = userMapper.getUserId(payEmail);
+        String receiveUser = userId.getUserID();
+        if (a == 0) {
+            return 0;
+        }else if(payUser.equals(receiveUser)) {
+            return -1;
+        }else {
+            return 1;
+        }
+    }
+
+    @Override
+    public int transferTo(UserID userId, String token) {
+        int a = userMapper.findUserID(userId.getUserID());
+        String payEmail = tokenUtil.getValue(token);
+        String payUser = userMapper.getUserId(payEmail);
+        String receiveUser = userId.getUserID();
+        if (a == 0 || payUser.equals(receiveUser)) {
+            return -1;
+        }
+        Date date = new Date();
+        Timestamp time = new Timestamp(date.getTime());
+        Transaction transaction = new Transaction();
+
+        float amount = Float.parseFloat(userId.getAmount());
+        float payBalance = Float.parseFloat(userMapper.selectBalance(payUser));
+        float receiveBalance = Float.parseFloat(userMapper.selectBalance(receiveUser));
+
+        if (payBalance < amount) {
+            return 0;
+        }
+        float payBalances = payBalance - amount;
+        userMapper.updateBalance(String.valueOf(payBalances), payUser);
+        float receiveBalances = receiveBalance + amount;
+        userMapper.updateBalance(String.valueOf(receiveBalances), receiveUser);
+
+        //存入数据库
+        transaction.setPayUser(payUser);
+        transaction.setReceiveUser(receiveUser);
+        transaction.setAmount(String.valueOf(amount));
+        transaction.setDate(time);
+        userMapper.transferTo(transaction);
+        return 1;
+
     }
 
     //充值
@@ -487,7 +539,7 @@ public class UserServiceImpl implements UserService {
     public int changeUsername(Username username, String token) {
         String receiveEmail = tokenUtil.getValue(token);
         try {
-            userMapper.changeUsername(username.getUsername(), receiveEmail);
+            userMapper.changeUsername(username.getUsernames(), receiveEmail);
             return 1;
         } catch (Exception e) {
             return 0;

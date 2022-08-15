@@ -46,10 +46,9 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public ResponseEntity<FileSystemResource> download(String token) {
+    public ResponseEntity<FileSystemResource> download(String UserName) {
         String uploadPathStr = "/picture";
-        String userEmail = tokenUtil.getValue(token);
-        String files = userMapper.getPictureName(userEmail);
+        String files = userMapper.getPictureName(UserName);
         if (files == null || files.isEmpty()) {
             return null;
         }

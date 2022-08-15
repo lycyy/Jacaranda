@@ -139,11 +139,11 @@ public class UserController {
     }
 
     @PostMapping("/transfer")
-    public Result transferTo(@RequestBody UserID userID, @RequestHeader(value = "token") String token) {
+    public Result transfer(@RequestBody UserID userID, @RequestHeader(value = "token") String token) {
         System.out.println("transfer:"+new Date(System.currentTimeMillis()));
         System.out.println("-----------------------------------------------------------------------------------------------");
         Result result = new Result();
-        int num = userService.transferTo(userID,token);
+        int num = userService.Verify(userID,token);
         if (num == 1) {
             result = result.success("支付成功");
         }else if (num == 0) {
@@ -176,6 +176,35 @@ public class UserController {
         return null;
     }
 
+    @PostMapping("/transferTo")
+    public Result transferTo(@RequestBody UserID userID, @RequestHeader(value = "token") String token) {
+        System.out.println("transferTo:"+new Date(System.currentTimeMillis()));
+        System.out.println("-----------------------------------------------------------------------------------------------");
+        Result result = new Result();
+        int num = userService.transferTo(userID,token);
+        if (num == 1) {
+            result = result.success("支付成功");
+        }else if (num == 0) {
+            result = result.fail("余额不足");
+        } else if (num == -1) {
+            result = result.fail("用户错误");
+        }
+        return result;
+    }
+
+    @PostMapping("/checkID")
+    public Result checkID(@RequestBody UserID userID,@RequestHeader(value = "token")String token){
+        Result result = new Result();
+        int a = userService.checkId(userID,token);
+        if (a == 0) {
+            result = result.fail("没有该用户");
+        }else if (a == -1){
+            result = result.fail("转账用户与本用户相同");
+        }else {
+            result = result.success("有该用户");
+        }
+        return result;
+    }
 
     //充值
     @PostMapping("/create-payment-intent")
