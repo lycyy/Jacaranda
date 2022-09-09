@@ -22,7 +22,7 @@ public class TokenUtil {
     //生成Token
     public String generateToken(User user){
 
-        Date date = new Date(currentTime);
+        Date date = new Date(System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000);
         String token;
         token = JWT.create()
                 .withAudience(user.getEmail())

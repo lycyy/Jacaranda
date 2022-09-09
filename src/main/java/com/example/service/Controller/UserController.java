@@ -3,9 +3,12 @@ package com.example.service.Controller;
 import com.example.service.Bean.*;
 import com.example.service.Bean.In.*;
 import com.example.service.Mapper.UserMapper;
+import com.example.service.Service.CompanyUserService;
 import com.example.service.Service.ServiceImpl.WebSocketService;
 import com.example.service.Service.UserService;
 import com.example.service.Util.TokenUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.web.bind.annotation.*;
@@ -23,9 +26,10 @@ public class UserController {
     TokenUtil tokenUtil;
     @Autowired
     UserMapper userMapper;
-
     @Autowired
     WebSocketService webSocketService;
+
+    Logger logger = LoggerFactory.getLogger(getClass());
 
     //注册登录
     @RequestMapping("/")
@@ -33,11 +37,10 @@ public class UserController {
         return "hello";
     }
 
+
     @PostMapping("/email")
     public Result email(@RequestBody User user) {
-
-        System.out.println("email:"+new Date(System.currentTimeMillis()));
-        System.out.println("-----------------------------------------------------------------------------------------------");
+        logger.info("email interface is call");
         int num = userService.findUser(user);
         if (num == 1) {
             return Result.success("请输入验证码", user);
@@ -48,8 +51,7 @@ public class UserController {
 
     @PostMapping("/code")
     public Result code(@RequestBody Code code) {
-        System.out.println("code:"+new Date(System.currentTimeMillis()));
-        System.out.println("-----------------------------------------------------------------------------------------------");
+        logger.info("code interface is call");
         int num = userService.verifyUser(code);
         if (num == 1) {
             return Result.success("验证成功");
@@ -60,8 +62,7 @@ public class UserController {
 
     @PostMapping("/info")
     public Result info(@RequestBody UserInfo userInfo) {
-        System.out.println("info:"+new Date(System.currentTimeMillis()));
-        System.out.println("-----------------------------------------------------------------------------------------------");
+        logger.info("info interface is call");
         int num = userService.info(userInfo);
         if (num == 1) {
             return Result.success("注册成功");
@@ -72,8 +73,7 @@ public class UserController {
 
     @PostMapping("/login")
     public Result login(@RequestBody User user) {
-        System.out.println("login:"+new Date(System.currentTimeMillis()));
-        System.out.println("-----------------------------------------------------------------------------------------------");
+        logger.info("login interface is call");
         String json = userService.checkUser(user);
         if (json.equals("查询错误")) {
 
@@ -88,8 +88,7 @@ public class UserController {
 
     @PostMapping("/testcode")
     public Result testcode(@RequestBody Code code) {
-        System.out.println("testcode:"+new Date(System.currentTimeMillis()));
-        System.out.println("-----------------------------------------------------------------------------------------------");
+        logger.info("testcode interface is call");
         int num = userService.testcode(code);
         Result result = new Result();
         if (num == 1) {
@@ -102,8 +101,7 @@ public class UserController {
 
     @PostMapping("/testToken")
     public Result testToken(@RequestHeader(value = "token") String token) {
-        System.out.println("testToken:"+new Date(System.currentTimeMillis()));
-        System.out.println("-----------------------------------------------------------------------------------------------");
+        logger.info("testToken interface is call");
         String json = userService.testToken(token);
         Result result = new Result();
         if (json.equals("用户不存在")) {
@@ -120,8 +118,7 @@ public class UserController {
     //账单支付
     @PostMapping("/bill")
     public Result selectBill(@RequestHeader(value = "token") String token) {
-        System.out.println("bill:"+new Date(System.currentTimeMillis()));
-        System.out.println("-----------------------------------------------------------------------------------------------");
+        logger.info("bill interface is call");
 
         String bill = userService.selectBill(token);
 
@@ -130,8 +127,7 @@ public class UserController {
 
     @PostMapping("/balanceOf")
     public Result selectbalanceOf(@RequestHeader(value = "token") String token) {
-        System.out.println("balanceOf:"+new Date(System.currentTimeMillis()));
-        System.out.println("-----------------------------------------------------------------------------------------------");
+        logger.info("balanceOf interface is call");
         String balanceOf = userService.selectBalanceOf(token);
 
 
@@ -140,8 +136,7 @@ public class UserController {
 
     @PostMapping("/transfer")
     public Result transfer(@RequestBody UserID userID, @RequestHeader(value = "token") String token) {
-        System.out.println("transfer:"+new Date(System.currentTimeMillis()));
-        System.out.println("-----------------------------------------------------------------------------------------------");
+        logger.info("transfer interface is call");
         Result result = new Result();
         int num = userService.Verify(userID,token);
         if (num == 1) {
@@ -154,10 +149,9 @@ public class UserController {
         return result;
     }
 
-    @PostMapping("/checkPayPswd")
+    @PostMapping("/checkPin")
     public Result checkPayPswd(@RequestBody PayPswd payPswd, @RequestHeader(value = "token") String token) {
-        System.out.println("checkPayPswd:"+new Date(System.currentTimeMillis()));
-        System.out.println("-----------------------------------------------------------------------------------------------");
+        logger.info("checkPayPswd interface is call");
         Result result = new Result();
         int num = userService.checkPayPswd(payPswd.getPayPswd(), token);
         if (num == 1) {
@@ -178,8 +172,7 @@ public class UserController {
 
     @PostMapping("/transferTo")
     public Result transferTo(@RequestBody UserID userID, @RequestHeader(value = "token") String token) {
-        System.out.println("transferTo:"+new Date(System.currentTimeMillis()));
-        System.out.println("-----------------------------------------------------------------------------------------------");
+        logger.info("transferTo interface is call");
         Result result = new Result();
         int num = userService.transferTo(userID,token);
         if (num == 1) {
@@ -194,14 +187,15 @@ public class UserController {
 
     @PostMapping("/checkID")
     public Result checkID(@RequestBody UserID userID,@RequestHeader(value = "token")String token){
+        logger.info("checkID interface is call");
         Result result = new Result();
-        int a = userService.checkId(userID,token);
-        if (a == 0) {
+        String a = userService.checkId(userID,token);
+        if (a.equals("0")) {
             result = result.fail("没有该用户");
-        }else if (a == -1){
+        }else if (a.equals("-1")){
             result = result.fail("转账用户与本用户相同");
         }else {
-            result = result.success("有该用户");
+            result = result.success("用户存在","username:" + a);
         }
         return result;
     }
@@ -209,8 +203,7 @@ public class UserController {
     //充值
     @PostMapping("/create-payment-intent")
     public Result createPaymentIntent(@RequestBody Amount Amounts, @RequestHeader(value = "token") String token) {
-        System.out.println("create-payment-intent:"+new Date(System.currentTimeMillis()));
-        System.out.println("-----------------------------------------------------------------------------------------------");
+        logger.info("create-payment-intent interface is call");
         String json = userService.createPaymentIntent(Amounts, token);
         Result result = new Result();
         result = result.success("success", json);
@@ -219,18 +212,23 @@ public class UserController {
 
     @PostMapping("/webhook")
     public Result webhook(@RequestBody String payload, @RequestHeader(value = "Stripe-Signature") String sigHeader) {
-        System.out.println("webhook:"+new Date(System.currentTimeMillis()));
-        System.out.println("-----------------------------------------------------------------------------------------------");
+        logger.info("webhook interface is call");
         userService.webhook(payload, sigHeader);
         return null;
     }
 
+    //公司信息
+    @PostMapping("/selectCompany")
+    public Result selectCompany(){
+        logger.info("selectCompany interface is call");
+        String company = userService.selectCompany();
+        return Result.success("查询成功", company);
+    }
 
     //用户信息
     @PostMapping("/getInfo")
     public Result getInfo(@RequestHeader(value = "token") String token) {
-        System.out.println("getInfo:"+new Date(System.currentTimeMillis()));
-        System.out.println("-----------------------------------------------------------------------------------------------");
+        logger.info("getInfo interface is call");
         String json = userService.getInfo(token);
 
         return Result.success("查询成功", json);
@@ -239,8 +237,7 @@ public class UserController {
 
     @PostMapping("/changePswd")
     public Result changePswd(@RequestBody UserPswd userPswd, @RequestHeader(value = "token") String token) {
-        System.out.println("changePswd:"+new Date(System.currentTimeMillis()));
-        System.out.println("-----------------------------------------------------------------------------------------------");
+        logger.info("changePswd interface is call");
         int num = userService.changePswd(userPswd, token);
         Result result = new Result();
         if (num == 1) {
@@ -253,10 +250,9 @@ public class UserController {
 
     }
 
-    @PostMapping("/changePayPswd")
+    @PostMapping("/changePin")
     public Result changePayPswd(@RequestBody UserPayPswd userPayPswd, @RequestHeader(value = "token") String token) {
-        System.out.println("changePayPswd:"+new Date(System.currentTimeMillis()));
-        System.out.println("-----------------------------------------------------------------------------------------------");
+        logger.info("changePayPswd interface is call");
         int num = userService.changePayPswd(userPayPswd, token);
         Result result = new Result();
 
@@ -271,10 +267,9 @@ public class UserController {
     }
 
     @PostMapping("/changeUsername")
-    public Result changeUsername(@RequestBody Username username, @RequestHeader(value = "token") String token) {
-        System.out.println("changeUsername:"+new Date(System.currentTimeMillis()));
-        System.out.println("-----------------------------------------------------------------------------------------------");
-        int num = userService.changeUsername(username, token);
+    public Result changeUsername(@RequestBody Usernames usernames, @RequestHeader(value = "token") String token) {
+        logger.info("changeUsername interface is call");
+        int num = userService.changeUsername(usernames, token);
         Result result = new Result();
         if (num == 1) {
             result = result.success("修改成功");
@@ -287,8 +282,7 @@ public class UserController {
 
     @PostMapping("/sendCode")
     public Result forgotPswd(@RequestBody User user) {
-        System.out.println("sendCode:"+new Date(System.currentTimeMillis()));
-        System.out.println("-----------------------------------------------------------------------------------------------");
+        logger.info("sendCode interface is call");
         int num = userService.sendEmail(user);
         Result result = new Result();
         if (num == 1) {
@@ -299,8 +293,7 @@ public class UserController {
 
     @PostMapping("/setPswd")
     public Result setPswd(@RequestBody User user) {
-        System.out.println("setPswd:"+new Date(System.currentTimeMillis()));
-        System.out.println("-----------------------------------------------------------------------------------------------");
+        logger.info("setPswd interface is call");
         int num = userService.setPswd(user);
         Result result = new Result();
         if (num == 1) {

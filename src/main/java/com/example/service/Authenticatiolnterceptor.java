@@ -8,6 +8,8 @@ import com.example.service.Bean.In.User;
 import com.example.service.Mapper.UserMapper;
 import com.example.service.Util.TokenUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -20,12 +22,16 @@ import java.util.Map;
 
 //拦截器类
 
-public class Authenticatiolnterceptor implements HandlerInterceptor {
+    public class Authenticatiolnterceptor implements HandlerInterceptor {
 
     @Autowired
     public TokenUtil tokenUtil;
     @Autowired
     public UserMapper userMapper;
+
+    Logger logger = LoggerFactory.getLogger(getClass());
+
+
 
     String token = new String();
     Map<String, Object> map = new HashMap<>();
@@ -34,7 +40,7 @@ public class Authenticatiolnterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         Date date = new Date();
-        System.out.println(date+" :进入拦截器");
+        logger.info("进入拦截器");
         ObjectMapper objectMapper = new ObjectMapper();
         token = tokenUtil.getToken(request);
 
@@ -46,7 +52,7 @@ public class Authenticatiolnterceptor implements HandlerInterceptor {
             String json = objectMapper.writeValueAsString(map);
             response.getWriter().append(json);
         }
-        int num = userMapper.findUser(tokenUtil.getValue(token));
+        int num = userMapper.checkallUser(tokenUtil.getValue(token));
         if (num == 0) {
             map.put("msg", "No user");
             map.put("code", "400");

@@ -16,7 +16,7 @@ public interface UserService {
     public String addBalance(String amount,String cid);
     public int Verify(UserID userId,String token);
     public int transferTo(UserID userId,String token);
-    public int checkId(UserID userId,String token);
+    public String checkId(UserID userId,String token);
     public int changePswd(UserPswd userPswd,String token);
     public int changePayPswd(UserPayPswd userPayPswd, String token);
     public int checkPayPswd(String PayPswd, String token);
@@ -25,7 +25,8 @@ public interface UserService {
     public int setPswd(User user);
     public String createPaymentIntent(Amount Amount,String token);
     public String webhook(String payload,String sigHeader);
-    public int changeUsername(Username username, String token);
+    public int changeUsername(Usernames usernames, String token);
     public String getInfo(String token);
     public int transfer(UserID userId,String token);
+    public String selectCompany();
 }

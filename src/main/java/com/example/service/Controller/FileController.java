@@ -3,10 +3,12 @@ package com.example.service.Controller;
 
 import com.example.service.Bean.In.User;
 import com.example.service.Bean.In.UserInfo;
-import com.example.service.Bean.In.Username;
+import com.example.service.Bean.In.Usernames;
 import com.example.service.Bean.Result;
 import com.example.service.Service.FileService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 
@@ -23,10 +25,11 @@ public class FileController {
     @Autowired
     FileService fileService;
 
-    @PostMapping(value = "/Upload")
+    Logger logger = LoggerFactory.getLogger(getClass());
+
+    @PostMapping(value = "/HeadUpload")
     public Result upload(@RequestParam MultipartFile file,@RequestHeader(value = "token") String token) {
-        System.out.println("Upload:"+new Date(System.currentTimeMillis()));
-        System.out.println("-----------------------------------------------------------------------------------------------");
+        logger.info("Upload interface is call");
         boolean b = fileService.upload(file, token);
         Result result = new Result();
         if (b) {
@@ -38,12 +41,47 @@ public class FileController {
 
     }
 
+    @PostMapping(value = "/C_Upload")
+    public Result C_upload(@RequestParam MultipartFile file,@RequestHeader(value = "token") String token) {
+        logger.info("C_Upload interface is call");
+        boolean b = fileService.Companyupload(file, token);
+        Result result = new Result();
+        if (b) {
+            result = result.success("上传成功");
+        }else {
+            result = result.fail("上传失败");
+        }
+        return result;
 
-    @PostMapping(value = "/Download")
-    public ResponseEntity<FileSystemResource> downloadImage(@RequestBody Username username){
-        System.out.println("Download:"+new Date(System.currentTimeMillis()));
-        System.out.println("-----------------------------------------------------------------------------------------------");
-        ResponseEntity<FileSystemResource> file = fileService.download(username.getUsernames());
+    }
+
+    @PostMapping(value = "/C_HeadUpload")
+    public Result C_Hupload(@RequestParam MultipartFile file,@RequestHeader(value = "token") String token) {
+        logger.info("C_HeadUpload interface is call");
+        boolean b = fileService.CompapnyHead(file, token);
+        Result result = new Result();
+        if (b) {
+            result = result.success("上传成功");
+        }else {
+            result = result.fail("上传失败");
+        }
+        return result;
+
+    }
+
+
+    @PostMapping(value = "/Head_Download")
+    public ResponseEntity<FileSystemResource> downloadHead(@RequestBody Usernames usernames){
+        logger.info("Head_Download interface is call");
+        ResponseEntity<FileSystemResource> file = fileService.download(usernames.getUsername());
         return file;
     }
+
+    @PostMapping(value = "/Picture_Download")
+    public ResponseEntity<FileSystemResource> downloadPicture(@RequestBody Usernames usernames){
+        logger.info("Picture_Download interface is call");
+        ResponseEntity<FileSystemResource> file = fileService.downloadCompany(usernames.getUsername());
+        return file;
+    }
+
 }

@@ -4,6 +4,7 @@ import com.example.service.Bean.In.Transaction;
 import com.example.service.Bean.Out.Bill;
 import com.example.service.Bean.In.User;
 import com.example.service.Bean.In.UserInfo;
+import com.example.service.Bean.Out.Company;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
@@ -13,6 +14,9 @@ public interface UserMapper {
 
     @Select("SELECT count(*) FROM Users WHERE Email = #{email} ")
     int findUser(String email);
+
+    @Select("SELECT count(*) FROM AllUser WHERE Email = #{email} ")
+    int checkallUser(String email);
 
     @Select("SELECT * FROM Users WHERE Email = #{email} and password = #{password} ")
     User checkUser(User user);
@@ -35,7 +39,7 @@ public interface UserMapper {
     @Select("SELECT UserID,Email,UserName,Mobile FROM UserInfo WHERE Email = #{Email}")
     UserInfo getUserInfo(String Email);
 
-    @Select("SELECT PictureName FROM UserInfo WHERE UserName = #{UserName}")
+    @Select("SELECT picturename FROM UserPicture WHERE username = #{UserName}")
     String getPictureName(String UserName);
 
     @Select("SELECT CustomerId FROM UserInfo WHERE Email = #{Email}")
@@ -47,13 +51,22 @@ public interface UserMapper {
     @Select("SELECT UserName FROM UserInfo WHERE UserID = #{UserID}")
     String selectUserName(String UserID);
 
+    @Select("SELECT UserName FROM UserInfo WHERE Email = #{Email}")
+    String getUserName(String Email);
+
     @Select("SELECT Balance FROM UserInfo WHERE CustomerId = #{CustomerId}")
     String getBalance(String CustomerId);
+
+    @Select("SELECT C_name,C_Mobile,C_address FROM Company")
+    List<Company> selectCompany();
 
 
     //插入
     @Insert("INSERT INTO Transaction (payUser,receiveUser,Amount,Date) VALUES (#{payUser},#{receiveUser},#{Amount},#{Date})")
     int transferTo(Transaction transaction);
+
+    @Insert("INSERT INTO Transaction_Company (payUser,receiveUser,Amount,Date) VALUES (#{payUser},#{receiveUser},#{Amount},#{Date})")
+    int transferTo_Company(Transaction transaction);
 
     @Insert("INSERT INTO UserInfo (UserID,Email,UserName,Mobile,payPassword,Balance,CustomerId,PictureName) VALUES (#{UserID},#{email},#{username},#{Mobile},#{paypassword},#{Balance},#{CustomerId},#{PictureName})")
     int addUserInfo(UserInfo userInfo);
@@ -65,7 +78,7 @@ public interface UserMapper {
     int addUserID(String UserID);
 
 
-    @Insert("INSERT INTO Users (Email,Password) VALUES (#{email},#{password})")
+    @Insert("INSERT INTO Users (Email,Password) VALUES (#{email},md5(#{password}))")
     int addUser(User user);
 
 

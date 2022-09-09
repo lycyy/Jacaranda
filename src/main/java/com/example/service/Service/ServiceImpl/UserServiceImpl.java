@@ -6,6 +6,8 @@ import com.example.service.Bean.CreatePaymentResponse;
 import com.example.service.Bean.In.*;
 import com.example.service.Bean.Out.Balance;
 import com.example.service.Bean.Out.Bill;
+import com.example.service.Bean.Out.Company;
+import com.example.service.Mapper.CompanyUserMapper;
 import com.example.service.Mapper.UserMapper;
 import com.example.service.Service.EmailService;
 import com.example.service.Service.RedisService;
@@ -50,6 +52,8 @@ public class UserServiceImpl implements UserService {
     VerCodeGenerateUtil verCodeGenerateUtil;
     @Autowired
     WebSocketService webSocketService;
+    @Autowired
+    CompanyUserMapper companyUserMapper;
 
     ObjectMapper objectMapper = new ObjectMapper();
 
@@ -269,9 +273,9 @@ public class UserServiceImpl implements UserService {
         String payUser = userId.getUserID();
         float amount = Float.parseFloat(userId.getAmount());
         String receiveEmail = tokenUtil.getValue(token);
-        String receiveUser = userMapper.getUserId(receiveEmail);
+        String receiveUser = companyUserMapper.selectUserID(receiveEmail);
         float payBalance = Float.parseFloat(userMapper.selectBalance(payUser));
-        float receiveBalance = Float.parseFloat(userMapper.selectBalance(receiveUser));
+        float receiveBalance = Float.parseFloat(companyUserMapper.selectBalance(receiveUser));
 
         if (payBalance < amount) {
             return 0;
@@ -279,14 +283,14 @@ public class UserServiceImpl implements UserService {
         float payBalances = payBalance - amount;
         userMapper.updateBalance(String.valueOf(payBalances), payUser);
         float receiveBalances = receiveBalance + amount;
-        userMapper.updateBalance(String.valueOf(receiveBalances), receiveUser);
+        companyUserMapper.updateBalances(String.valueOf(receiveBalances), receiveUser);
 
         //存入数据库
         transaction.setPayUser(payUser);
         transaction.setReceiveUser(receiveUser);
         transaction.setAmount(String.valueOf(amount));
         transaction.setDate(time);
-        userMapper.transferTo(transaction);
+        userMapper.transferTo_Company(transaction);
         return 1;
     }
 
@@ -305,17 +309,19 @@ public class UserServiceImpl implements UserService {
 
     //个人转账
     @Override
-    public int checkId(UserID userId,String token) {
+    @Transactional(rollbackFor = {RuntimeException.class, Error.class})
+    public String checkId(UserID userId,String token) {
         int a = userMapper.findUserID(userId.getUserID());
         String payEmail = tokenUtil.getValue(token);
         String payUser = userMapper.getUserId(payEmail);
         String receiveUser = userId.getUserID();
         if (a == 0) {
-            return 0;
+            return "0";
         }else if(payUser.equals(receiveUser)) {
-            return -1;
+            return "-1";
         }else {
-            return 1;
+            String username = userMapper.selectUserName(userId.getUserID());
+            return username;
         }
     }
 
@@ -536,10 +542,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public int changeUsername(Username username, String token) {
+    public int changeUsername(Usernames usernames, String token) {
         String receiveEmail = tokenUtil.getValue(token);
         try {
-            userMapper.changeUsername(username.getUsernames(), receiveEmail);
+            userMapper.changeUsername(usernames.getUsername(), receiveEmail);
             return 1;
         } catch (Exception e) {
             return 0;
@@ -599,6 +605,21 @@ public class UserServiceImpl implements UserService {
         }
         return json;
     }
+
+    //公司
+    @Override
+    public String selectCompany() {
+        List<Company> companyList = userMapper.selectCompany();
+
+        try {
+            json = objectMapper.writeValueAsString(companyList);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        return json;
+    }
+
 }
 
 

@@ -8,5 +8,8 @@ import org.springframework.web.multipart.MultipartFile;
 public interface FileService {
 
     public boolean upload(MultipartFile file,String token);
+    public boolean Companyupload(MultipartFile file,String token);
     public ResponseEntity<FileSystemResource> download(String token);
+    public boolean CompapnyHead(MultipartFile file,String token);
+    public ResponseEntity<FileSystemResource> downloadCompany(String UserName);
 }
