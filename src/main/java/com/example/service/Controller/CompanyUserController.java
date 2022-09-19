@@ -1,8 +1,6 @@
 package com.example.service.Controller;
 
-import com.example.service.Bean.In.CompanyInfo;
-import com.example.service.Bean.In.User;
-import com.example.service.Bean.In.UserInfo;
+import com.example.service.Bean.In.*;
 import com.example.service.Bean.Result;
 import com.example.service.Service.CompanyUserService;
 import com.example.service.Service.ServiceImpl.CompanyUserServiceImpl;
@@ -15,33 +13,56 @@ import java.util.Date;
 
 @RestController
 @ResponseBody
+@RequestMapping("/company")
 public class CompanyUserController {
     @Autowired
     CompanyUserService companyUserService;
     Logger logger = LoggerFactory.getLogger(getClass());
 
-    @PostMapping("/C_register")
-    public Result register(@RequestBody User user){
+    @PostMapping("/authorizationCode")
+    public Result authorization(@RequestBody Verify verify) {
+        logger.info("Verify interface is call");
+        if (verify.getVerify().equals("WD5AHI")) {
+            return Result.success("验证成功");
+        } else {
+            return Result.fail("验证失败");
+        }
+    }
+
+    @PostMapping("/register")
+    public Result register(@RequestBody User user) {
         logger.info("C_register interface is call");
         int num = companyUserService.Companyregister(user);
         if (num == 1) {
-            return Result.success("注册成功");
+            return Result.success("请输入验证码");
         } else {
             return Result.fail("账号已存在");
         }
     }
-    @PostMapping("/C_info")
-    public Result info(@RequestBody CompanyInfo companyInfo) {
-        logger.info("C_info interface is call");
-        int num = companyUserService.info(companyInfo);
+
+    @PostMapping("/code")
+    public Result code(@RequestBody Code code) {
+        logger.info("code interface is call");
+        int num = companyUserService.verifyUser(code);
         if (num == 1) {
-            return Result.success("注册成功");
+            return Result.success("验证成功");
         } else {
             return Result.fail("验证码错误");
         }
     }
 
-    @PostMapping("/C_login")
+    @PostMapping("/info")
+    public Result info(@RequestBody CompanyInfo companyInfo ,  @RequestHeader(value = "token") String token) {
+        logger.info("C_info interface is call");
+        int num = companyUserService.info(companyInfo,token);
+        if (num == 1) {
+            return Result.success("信息填写成功");
+        } else {
+            return Result.fail("信息填写错误");
+        }
+    }
+
+    @PostMapping("/login")
     public Result login(@RequestBody User user) {
         logger.info("C_login interface is call");
         String json = companyUserService.checkUser(user);
@@ -56,10 +77,61 @@ public class CompanyUserController {
         }
     }
 
-    @PostMapping("/C_balanceOf")
+    @PostMapping("/balanceOf")
     public Result selectbalanceOf(@RequestHeader(value = "token") String token) {
         logger.info("balanceOf interface is call");
         String balanceOf = companyUserService.selectBalanceOf(token);
         return Result.success("查询成功", balanceOf);
+    }
+
+    @PostMapping("/changePswd")
+    public Result changePswd(@RequestBody UserPswd userPswd, @RequestHeader(value = "token") String token) {
+        logger.info("changePswd interface is call");
+        int num = companyUserService.changePswd(userPswd, token);
+        Result result = new Result();
+        if (num == 1) {
+            result = result.success("修改成功");
+        }
+        if (num == 0) {
+            result = result.fail("修改失败");
+        }
+        return result;
+
+    }
+
+    @PostMapping("/changeUsername")
+    public Result changeUsername(@RequestBody Usernames usernames, @RequestHeader(value = "token") String token) {
+        logger.info("changeUsername interface is call");
+        int num = companyUserService.changeUsername(usernames, token);
+        Result result = new Result();
+        if (num == 1) {
+            result = result.success("修改成功");
+        }
+        if (num == 0) {
+            result = result.fail("修改失败");
+        }
+        return result;
+    }
+
+    @PostMapping("/setPswd")
+    public Result setPswd(@RequestBody User user) {
+        logger.info("setPswd interface is call");
+        int num = companyUserService.setPswd(user);
+        Result result = new Result();
+        if (num == 1) {
+            result = result.success("修改成功");
+        } else {
+            result = result.success("修改失败");
+        }
+        return result;
+    }
+
+    @PostMapping("/bill")
+    public Result selectBill(@RequestHeader(value = "token") String token) {
+        logger.info("bill interface is call");
+
+        String bill = companyUserService.selectBill(token);
+
+        return Result.success("查询成功", bill);
     }
 }

@@ -20,15 +20,16 @@ public class InterceptorConfig implements WebMvcConfigurer {
                 .addPathPatterns("/**")
                 .excludePathPatterns("/email")
                 .excludePathPatterns("/code")
-                .excludePathPatterns("/info")
                 .excludePathPatterns("/login")
                 .excludePathPatterns("/webhook")
                 .excludePathPatterns("/testcode")
+                .excludePathPatterns("/sendCode")
                 .excludePathPatterns("/setPswd")
                 .excludePathPatterns("/forgotPswd")
-                .excludePathPatterns("/C_login")
-                .excludePathPatterns("/C_info")
-                .excludePathPatterns("/C_register");
+                .excludePathPatterns("/company/authorizationCode")
+                .excludePathPatterns("/company/login")
+                .excludePathPatterns("/company/code")
+                .excludePathPatterns("/company/register");
         }
     }
 

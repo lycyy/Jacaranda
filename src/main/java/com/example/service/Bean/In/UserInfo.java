@@ -5,7 +5,7 @@ public class UserInfo {
     private String email;
     private String username;
     private String Mobile;
-    private String paypassword;
+    private String pin;
     private String Balance;
     private String CustomerId;
     private String PictureName;
@@ -58,12 +58,12 @@ public class UserInfo {
         Mobile = mobile;
     }
 
-    public String getPaypassword() {
-        return paypassword;
+    public String getPin() {
+        return pin;
     }
 
-    public void setPaypassword(String paypassword) {
-        this.paypassword = paypassword;
+    public void setPin(String pin) {
+        this.pin = pin;
     }
 
     public String getPictureName() {

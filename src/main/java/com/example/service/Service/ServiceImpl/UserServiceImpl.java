@@ -33,13 +33,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class UserServiceImpl implements UserService {
+    static String SIGN = "0960543";
+
     @Autowired
     UserMapper userMapper;
     @Autowired
@@ -70,7 +69,7 @@ public class UserServiceImpl implements UserService {
             redisService.set(email, password);
             redisService.set(text, email);
             System.out.println(text);
-//            new EmailThread(user.getEmail(), "subject", text, emailService).start();
+//            new EmailThread(user.getEmail(), "Verification code", text, emailService).start();
             return 1;
         } else {
             return 0;
@@ -88,7 +87,7 @@ public class UserServiceImpl implements UserService {
         if (email.equals(realemails)) {
             User user = new User();
             user.setEmail(email);
-            user.setPassword(redisService.get(email));
+            user.setPassword(redisService.get(email) + SIGN);
             userMapper.addUser(user);
             return 1;
         } else {
@@ -97,14 +96,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public int info(UserInfo userInfo) {
+    public int info(UserInfo userInfo , String token) {
         Stripe.apiKey = "sk_test_51LImNKAOiNy9BWzWHWwXKchph0iHIA8eySN5eDNYtxL9LLrNzFISXmTOHrjrpEnvbF1pKyRCaG9BcqnWXjcNNPnf00vUzWYyjr";
         String UserID = verCodeGenerateUtil.generateUserID();
+        String UserEmail = tokenUtil.getValue(token);
         if (userMapper.findUserID(UserID) == 0) {
             //获取customerid
-            String email = userInfo.getEmail();
             Map<String, Object> params = new HashMap<>();
-            params.put("email", email);
+            params.put("email", UserEmail);
             Customer customer = null;
             try {
                 customer = Customer.create(params);
@@ -113,6 +112,8 @@ public class UserServiceImpl implements UserService {
             }
             String cid = customer.getId();
             //注入属性
+            userInfo.setEmail(UserEmail);
+            userInfo.setPin(userInfo.getPin() + SIGN);
             userInfo.setCustomerId(cid);
             userInfo.setUserID(UserID);
             userInfo.setBalance("0");
@@ -128,22 +129,34 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String checkUser(User user) {
-        User user1 = userMapper.checkUser(user);
-        if (user1 != null) {
-            UserInfo userInfo = userMapper.getUserInfo(user.getEmail());
-            String token = tokenUtil.generateToken(user);
-            Map<String, Object> map = new HashMap<>();
-            map.put("UserID", userInfo.getUserID());
-            map.put("UserName", userInfo.getUsername());
-            map.put("token", token);
-
-            try {
-                json = objectMapper.writeValueAsString(map);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
+        user.setPassword(user.getPassword() + SIGN);
+        String token = tokenUtil.generateToken(user);
+        Map<String, Object> map = new HashMap<>();
+        int a = userMapper.checkUser(user);
+        if (a != 0) {
+            int b = userMapper.findUserInfo(user.getEmail());
+            if (b != 0) {
+                UserInfo userInfo = userMapper.getUserInfo(user.getEmail());
+                map.put("UserID", userInfo.getUserID());
+                map.put("UserName", userInfo.getUsername());
+                map.put("token", token);
+                try {
+                    json = objectMapper.writeValueAsString(map);
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
+                return json;
+            } else {
+                map.put("UserID", null);
+                map.put("UserName", null);
+                map.put("token", token);
+                try {
+                    json = objectMapper.writeValueAsString(map);
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
+                return json;
             }
-
-            return json;
         } else {
             return "查询错误";
         }
@@ -188,6 +201,7 @@ public class UserServiceImpl implements UserService {
         //查询用户账单
         List<Bill> billList = userMapper.selectBill(userId);
         for (Bill bill : billList) {
+
             String username = userMapper.selectUserName(bill.getReceiveUser());
             bill.setReceiveUsername(username);
             if (bill.getReceiveUser().equals(userId)) {
@@ -198,10 +212,10 @@ public class UserServiceImpl implements UserService {
         }
 
         objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy", Locale.ENGLISH);
         objectMapper.setDateFormat(sdf);
         try {
-            json = objectMapper.writeValueAsString(billList);
+            json = objectMapper.writeValueAsString(billList).replace("receiveUsername","name").replace("date","dateString");
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
@@ -298,7 +312,7 @@ public class UserServiceImpl implements UserService {
     public int checkPayPswd(String PayPswd, String token) {
         String payEmail = tokenUtil.getValue(token);
         String payUser = userMapper.getUserId(payEmail);
-        int num = userMapper.checkPayPswd(payEmail, PayPswd);
+        int num = userMapper.checkPayPswd(payEmail, PayPswd + SIGN);
         if (num == 1) {
             redisService.set(payUser, "true");
             return 1;
@@ -310,16 +324,16 @@ public class UserServiceImpl implements UserService {
     //个人转账
     @Override
     @Transactional(rollbackFor = {RuntimeException.class, Error.class})
-    public String checkId(UserID userId,String token) {
+    public String checkId(UserID userId, String token) {
         int a = userMapper.findUserID(userId.getUserID());
         String payEmail = tokenUtil.getValue(token);
         String payUser = userMapper.getUserId(payEmail);
         String receiveUser = userId.getUserID();
         if (a == 0) {
             return "0";
-        }else if(payUser.equals(receiveUser)) {
+        } else if (payUser.equals(receiveUser)) {
             return "-1";
-        }else {
+        } else {
             String username = userMapper.selectUserName(userId.getUserID());
             return username;
         }
@@ -518,10 +532,10 @@ public class UserServiceImpl implements UserService {
         User user = new User();
         String receiveEmail = tokenUtil.getValue(token);
         user.setEmail(receiveEmail);
-        user.setPassword(userPswd.getOldPswd());
-        User user1 = userMapper.checkUser(user);
-        if (user1 != null) {
-            userMapper.changePswd(userPswd.getNewPswd(), receiveEmail);
+        user.setPassword(userPswd.getOldPswd() + SIGN);
+        int a = userMapper.checkUser(user);
+        if (a != 0) {
+            userMapper.changePswd(userPswd.getNewPswd() + SIGN, receiveEmail);
             return 1;
         } else {
             return 0;
@@ -530,11 +544,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public int changePayPswd(UserPayPswd userPayPswd, String token) {
+    public int changePayPswd(UserPin userPin, String token) {
         String receiveEmail = tokenUtil.getValue(token);
-        int num = userMapper.checkPayPswd(receiveEmail, userPayPswd.getOldPayPswd());
+        int num = userMapper.checkPayPswd(receiveEmail, userPin.getOldPin() + SIGN);
         if (num != 0) {
-            userMapper.changePayPswd(userPayPswd.getNewPayPswd(), receiveEmail);
+            userMapper.changePayPswd(userPin.getNewPin() + SIGN, receiveEmail);
             return 1;
         } else {
             return 0;
@@ -580,7 +594,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public int setPswd(User user) {
         String email = user.getEmail();
-        String pswd = user.getPassword();
+        String pswd = user.getPassword() + SIGN;
         if (userMapper.findUser(email) != 0) {
             userMapper.changePswd(pswd, email);
             return 1;

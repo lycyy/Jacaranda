@@ -1,13 +1,14 @@
 package com.example.service.Bean.In;
 
-public class PayPswd {
-    private String payPswd;
+public class PIN {
+    private String pin;
 
-    public String getPayPswd() {
-        return payPswd;
+    public String getPin() {
+        return pin;
     }
 
-    public void setPayPswd(String payPswd) {
-        this.payPswd = payPswd;
+    public void setPin(String pin) {
+        this.pin = pin;
     }
 }
+

@@ -1,6 +1,6 @@
 package com.example.service.Bean.In;
 
-public class UserPayPswd {
+public class UserPin {
     private String oldPin;
     private String newPin;
 

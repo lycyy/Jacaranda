@@ -62,10 +62,7 @@ import java.util.Map;
         //验签
         try {
             DecodedJWT decodedJWT = tokenUtil.verify(token);
-
             return true;
-
-
         } catch (SignatureVerificationException e) {
             e.printStackTrace();
             map.put("msg", "invalid sign");

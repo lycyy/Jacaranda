@@ -3,7 +3,6 @@ package com.example.service.Controller;
 import com.example.service.Bean.*;
 import com.example.service.Bean.In.*;
 import com.example.service.Mapper.UserMapper;
-import com.example.service.Service.CompanyUserService;
 import com.example.service.Service.ServiceImpl.WebSocketService;
 import com.example.service.Service.UserService;
 import com.example.service.Util.TokenUtil;
@@ -13,9 +12,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.web.bind.annotation.*;
 
-
-import javax.websocket.server.PathParam;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.format.TextStyle;
 import java.util.Date;
+import java.util.Locale;
 
 @RestController
 @ResponseBody
@@ -30,6 +32,8 @@ public class UserController {
     WebSocketService webSocketService;
 
     Logger logger = LoggerFactory.getLogger(getClass());
+
+    Date date = new Date();
 
     //注册登录
     @RequestMapping("/")
@@ -61,19 +65,20 @@ public class UserController {
     }
 
     @PostMapping("/info")
-    public Result info(@RequestBody UserInfo userInfo) {
+    public Result info(@RequestBody UserInfo userInfo , @RequestHeader(value = "token") String token) {
         logger.info("info interface is call");
-        int num = userService.info(userInfo);
+        int num = userService.info(userInfo,token);
         if (num == 1) {
-            return Result.success("注册成功");
+            return Result.success("信息填写成功");
         } else {
-            return Result.fail("验证码错误");
+            return Result.fail("信息填写错误");
         }
     }
 
     @PostMapping("/login")
     public Result login(@RequestBody User user) {
         logger.info("login interface is call");
+
         String json = userService.checkUser(user);
         if (json.equals("查询错误")) {
 
@@ -138,10 +143,10 @@ public class UserController {
     public Result transfer(@RequestBody UserID userID, @RequestHeader(value = "token") String token) {
         logger.info("transfer interface is call");
         Result result = new Result();
-        int num = userService.Verify(userID,token);
+        int num = userService.Verify(userID, token);
         if (num == 1) {
             result = result.success("支付成功");
-        }else if (num == 0) {
+        } else if (num == 0) {
             result = result.fail("余额不足");
         } else if (num == -1) {
             result = result.fail("连接超时");
@@ -150,10 +155,10 @@ public class UserController {
     }
 
     @PostMapping("/checkPin")
-    public Result checkPayPswd(@RequestBody PayPswd payPswd, @RequestHeader(value = "token") String token) {
-        logger.info("checkPayPswd interface is call");
+    public Result checkPayPswd(@RequestBody PIN pin, @RequestHeader(value = "token") String token) {
+        logger.info("checkPin interface is call");
         Result result = new Result();
-        int num = userService.checkPayPswd(payPswd.getPayPswd(), token);
+        int num = userService.checkPayPswd(pin.getPin(), token);
         if (num == 1) {
             result = result.success("密码正确");
         } else {
@@ -163,7 +168,7 @@ public class UserController {
     }
 
     @PostMapping("/test")
-    public Result test(@RequestHeader(value = "token") String token){
+    public Result test(@RequestHeader(value = "token") String token) {
         String receiveEmail = tokenUtil.getValue(token);
         String receiveUser = userMapper.getUserId(receiveEmail);
         webSocketService.sendMessage("success", Long.parseLong(receiveUser));
@@ -174,10 +179,10 @@ public class UserController {
     public Result transferTo(@RequestBody UserID userID, @RequestHeader(value = "token") String token) {
         logger.info("transferTo interface is call");
         Result result = new Result();
-        int num = userService.transferTo(userID,token);
+        int num = userService.transferTo(userID, token);
         if (num == 1) {
             result = result.success("支付成功");
-        }else if (num == 0) {
+        } else if (num == 0) {
             result = result.fail("余额不足");
         } else if (num == -1) {
             result = result.fail("用户错误");
@@ -186,16 +191,16 @@ public class UserController {
     }
 
     @PostMapping("/checkID")
-    public Result checkID(@RequestBody UserID userID,@RequestHeader(value = "token")String token){
+    public Result checkID(@RequestBody UserID userID, @RequestHeader(value = "token") String token) {
         logger.info("checkID interface is call");
         Result result = new Result();
-        String a = userService.checkId(userID,token);
+        String a = userService.checkId(userID, token);
         if (a.equals("0")) {
             result = result.fail("没有该用户");
-        }else if (a.equals("-1")){
+        } else if (a.equals("-1")) {
             result = result.fail("转账用户与本用户相同");
-        }else {
-            result = result.success("用户存在","username:" + a);
+        } else {
+            result = result.success("用户存在", "username:" + a);
         }
         return result;
     }
@@ -219,7 +224,7 @@ public class UserController {
 
     //公司信息
     @PostMapping("/selectCompany")
-    public Result selectCompany(){
+    public Result selectCompany() {
         logger.info("selectCompany interface is call");
         String company = userService.selectCompany();
         return Result.success("查询成功", company);
@@ -251,9 +256,9 @@ public class UserController {
     }
 
     @PostMapping("/changePin")
-    public Result changePayPswd(@RequestBody UserPayPswd userPayPswd, @RequestHeader(value = "token") String token) {
-        logger.info("changePayPswd interface is call");
-        int num = userService.changePayPswd(userPayPswd, token);
+    public Result changePayPswd(@RequestBody UserPin userPin, @RequestHeader(value = "token") String token) {
+        logger.info("changePin interface is call");
+        int num = userService.changePayPswd(userPin, token);
         Result result = new Result();
 
         if (num == 1) {

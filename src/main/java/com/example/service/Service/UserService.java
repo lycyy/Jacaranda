@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 public interface UserService {
     public int findUser(User user);
     public int verifyUser(Code code);
-    public int info(UserInfo userInfo);
+    public int info(UserInfo userInfo , String token);
     public String checkUser(User user);
     public String testToken(String token);
     public String selectBill(String token);
@@ -18,7 +18,7 @@ public interface UserService {
     public int transferTo(UserID userId,String token);
     public String checkId(UserID userId,String token);
     public int changePswd(UserPswd userPswd,String token);
-    public int changePayPswd(UserPayPswd userPayPswd, String token);
+    public int changePayPswd(UserPin userPin, String token);
     public int checkPayPswd(String PayPswd, String token);
     public int sendEmail(User user);
     public int testcode(Code code);
