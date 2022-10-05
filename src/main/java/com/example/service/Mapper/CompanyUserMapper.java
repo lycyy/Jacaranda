@@ -47,6 +47,9 @@ public interface CompanyUserMapper {
 
     @Select("SELECT payUser,Amount,Date FROM Transaction_Company WHERE receiveUser = #{receiveUser}")
     List<CompanyBill> selectBill(String receiveUser);
+
+    @Select("SELECT C_Mobile FROM Company WHERE Email = #{email}")
+    String checkUserInfo(String email);
     //增添
     @Insert("INSERT INTO Company (CompanyID,PictureName,C_name,C_Mobile,C_address,Balance,Email) VALUES (#{CompanyID},#{Picture},#{C_name},#{C_Mobile},#{C_address},#{Balance},#{email})")
     int addUserInfo(CompanyInfo companyInfo);
@@ -68,6 +71,11 @@ public interface CompanyUserMapper {
 
     @Update("UPDATE Company SET C_name = #{username} WHERE Email = #{email}")
     void changeUsername(String username, String email);
+
+    @Update("UPDATE Company SET C_Mobile= #{C_Mobile},C_address = #{C_address},Balance= #{Balance},PictureName= #{PictureName} WHERE Email = #{email}")
+    void updateUserInfo(String C_Mobile,String C_address,String Balance,String PictureName, String email);
+
+
 
     //删除
 }

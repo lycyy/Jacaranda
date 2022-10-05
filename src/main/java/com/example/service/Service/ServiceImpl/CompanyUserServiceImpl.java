@@ -41,6 +41,8 @@ public class CompanyUserServiceImpl implements CompanyUserService {
     VerCodeGenerateUtil verCodeGenerateUtil;
     @Autowired
     WebSocketService webSocketService;
+    @Autowired
+    CompanyInfo companyInfo;
 
     ObjectMapper objectMapper = new ObjectMapper();
 
@@ -50,11 +52,13 @@ public class CompanyUserServiceImpl implements CompanyUserService {
     public int Companyregister(User user) {
         String email = user.getEmail();
         String password = user.getPassword();
-        user.setPassword(password);
+        String username = user.getUsername();
+
         int num = companyUserMapper.findUser(email);
         if (num == 0) {
             String text = verCodeGenerateUtil.generateVerCode();
-            redisService.set(email, password);
+            redisService.set(email + "p", password);
+            redisService.set(email + "u", username);
             redisService.set(text, email);
             System.out.println(text);
 //            new EmailThread(user.getEmail(), "Verification code", text, emailService).start();
@@ -66,15 +70,25 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 
     @Override
     public int verifyUser(Code code) {
-
+        StringBuffer UserID = verCodeGenerateUtil.generateUserID();
+        while (companyUserMapper.findUserID(String.valueOf(UserID)) == 1) {
+            UserID = verCodeGenerateUtil.generateUserID();
+        }
         String email = code.getEmail();
         String codes = code.getCode();
+        String username = redisService.get(email + "u");
         String realemails = redisService.get(codes);
         if (email.equals(realemails)) {
             User user = new User();
             user.setEmail(email);
-            user.setPassword(redisService.get(email) + SIGN);
+            user.setPassword(redisService.get(email + "p") + SIGN);
             companyUserMapper.addUser(user);
+
+            companyInfo.setCompanyID(String.valueOf(UserID));
+            companyInfo.setEmail(email);
+            companyInfo.setC_name(username);
+            companyUserMapper.addUserInfo(companyInfo);
+
             return 1;
         } else {
             return 0;
@@ -83,21 +97,14 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 
 
     @Override
-    public int info(CompanyInfo companyInfo ,String token) {
-        String UserID = verCodeGenerateUtil.generateUserID();
+    public int info(CompanyInfo companyInfo, String token) {
+
         String UserEmail = tokenUtil.getValue(token);
-        if (companyUserMapper.findUserID(UserID) == 0) {
-            //注入属性
-            companyInfo.setEmail(UserEmail);
-            companyInfo.setCompanyID(UserID);
-            companyInfo.setPicture("R.png");
-            companyInfo.setBalance("0");
-            companyUserMapper.addUserInfo(companyInfo);
-        } else {
-            String UserIDS = verCodeGenerateUtil.generateUserID();
-            companyInfo.setCompanyID(UserIDS);
-            companyUserMapper.addUserInfo(companyInfo);
-        }
+        //注入属性
+        companyInfo.setEmail(UserEmail);
+        companyInfo.setPicture("R.png");
+        companyInfo.setBalance("0");
+        companyUserMapper.updateUserInfo(companyInfo.getC_Mobile(),companyInfo.getC_address(),companyInfo.getBalance(),companyInfo.getPicture(), UserEmail);;
         return 1;
     }
 
@@ -107,33 +114,29 @@ public class CompanyUserServiceImpl implements CompanyUserService {
         String password = user.getPassword() + SIGN;
         user.setPassword(password);
         int a = companyUserMapper.checkUser(user);
+        String b = companyUserMapper.checkUserInfo(user.getEmail());
         String token = tokenUtil.generateToken(user);
         Map<String, Object> map = new HashMap<>();
         if (a != 0) {
-            int b = companyUserMapper.findUserInfo(user.getEmail());
-            if (b != 0) {
-                CompanyInfo companyInfo = companyUserMapper.getUserInfo(user.getEmail());
 
-                map.put("UserID", companyInfo.getCompanyID());
-                map.put("UserName", companyInfo.getC_name());
-                map.put("token", token);
-                try {
-                    json = objectMapper.writeValueAsString(map);
-                } catch (JsonProcessingException e) {
-                    e.printStackTrace();
-                }
-                return json;
+            CompanyInfo companyInfo = companyUserMapper.getUserInfo(user.getEmail());
+
+            map.put("UserID", companyInfo.getCompanyID());
+            map.put("UserName", companyInfo.getC_name());
+            map.put("token", token);
+
+            if (b != null) {
+                map.put("info", "1");
             } else {
-                map.put("UserID", null);
-                map.put("UserName", null);
-                map.put("token", token);
-                try {
-                    json = objectMapper.writeValueAsString(map);
-                } catch (JsonProcessingException e) {
-                    e.printStackTrace();
-                }
-                return json;
+                map.put("info", "0");
             }
+            try {
+                json = objectMapper.writeValueAsString(map);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+            return json;
+
         } else {
             return "查询错误";
         }

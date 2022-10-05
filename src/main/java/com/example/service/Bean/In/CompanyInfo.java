@@ -1,5 +1,8 @@
 package com.example.service.Bean.In;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class CompanyInfo {
     private String CompanyID;
     private String Picture;

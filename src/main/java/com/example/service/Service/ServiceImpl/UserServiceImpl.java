@@ -42,6 +42,8 @@ public class UserServiceImpl implements UserService {
     @Autowired
     UserMapper userMapper;
     @Autowired
+    UserInfo userInfo;
+    @Autowired
     EmailService emailService;
     @Autowired
     RedisService redisService;
@@ -63,10 +65,12 @@ public class UserServiceImpl implements UserService {
     public int findUser(User user) {
         String email = user.getEmail();
         String password = user.getPassword();
+        String username = user.getUsername();
         int num = userMapper.findUser(email);
         if (num == 0) {
             String text = verCodeGenerateUtil.generateVerCode();
-            redisService.set(email, password);
+            redisService.set(email + "p", password);
+            redisService.set(email + "u", username);
             redisService.set(text, email);
             System.out.println(text);
 //            new EmailThread(user.getEmail(), "Verification code", text, emailService).start();
@@ -81,49 +85,58 @@ public class UserServiceImpl implements UserService {
     @Override
     public int verifyUser(Code code) {
 
+
         String email = code.getEmail();
         String codes = code.getCode();
+        StringBuffer UserID = verCodeGenerateUtil.generateUserID();
+        while (userMapper.findUserID(String.valueOf(UserID)) == 1) {
+            UserID = verCodeGenerateUtil.generateUserID();
+        }
+
+
         String realemails = redisService.get(codes);
         if (email.equals(realemails)) {
             User user = new User();
             user.setEmail(email);
-            user.setPassword(redisService.get(email) + SIGN);
+            user.setPassword(redisService.get(email + "p") + SIGN);
             userMapper.addUser(user);
+
+            userInfo.setUserID(String.valueOf(UserID));
+            userInfo.setUsername(redisService.get(email + "u"));
+            userInfo.setEmail(email);
+
+            userMapper.addUserInfo(userInfo);
             return 1;
         } else {
             return 0;
         }
+
     }
 
     @Override
-    public int info(UserInfo userInfo , String token) {
+    public int info(UserInfo userInfo, String token) {
         Stripe.apiKey = "sk_test_51LImNKAOiNy9BWzWHWwXKchph0iHIA8eySN5eDNYtxL9LLrNzFISXmTOHrjrpEnvbF1pKyRCaG9BcqnWXjcNNPnf00vUzWYyjr";
-        String UserID = verCodeGenerateUtil.generateUserID();
+
         String UserEmail = tokenUtil.getValue(token);
-        if (userMapper.findUserID(UserID) == 0) {
-            //获取customerid
-            Map<String, Object> params = new HashMap<>();
-            params.put("email", UserEmail);
-            Customer customer = null;
-            try {
-                customer = Customer.create(params);
-            } catch (StripeException e) {
-                e.printStackTrace();
-            }
-            String cid = customer.getId();
-            //注入属性
-            userInfo.setEmail(UserEmail);
-            userInfo.setPin(userInfo.getPin() + SIGN);
-            userInfo.setCustomerId(cid);
-            userInfo.setUserID(UserID);
-            userInfo.setBalance("0");
-            userInfo.setPictureName("R.png");
-            userMapper.addUserInfo(userInfo);
-        } else {
-            String UserIDS = verCodeGenerateUtil.generateUserID();
-            userInfo.setUserID(UserIDS);
-            userMapper.addUserInfo(userInfo);
+
+        //获取customerid
+        Map<String, Object> params = new HashMap<>();
+        params.put("email", UserEmail);
+        Customer customer = null;
+        try {
+            customer = Customer.create(params);
+        } catch (StripeException e) {
+            e.printStackTrace();
         }
+        String cid = customer.getId();
+        //注入属性
+
+        userInfo.setPin(userInfo.getPin() + SIGN);
+        userInfo.setCustomerId(cid);
+        userInfo.setBalance("0");
+        userInfo.setPictureName("R.png");
+        userMapper.updateUserInfo(userInfo.getMobile(), userInfo.getPin(), userInfo.getBalance(), userInfo.getCustomerId(), userInfo.getPictureName(), UserEmail);
+
         return 1;
     }
 
@@ -133,30 +146,24 @@ public class UserServiceImpl implements UserService {
         String token = tokenUtil.generateToken(user);
         Map<String, Object> map = new HashMap<>();
         int a = userMapper.checkUser(user);
+        String b = userMapper.checkUserInfo(user.getEmail());
         if (a != 0) {
-            int b = userMapper.findUserInfo(user.getEmail());
-            if (b != 0) {
-                UserInfo userInfo = userMapper.getUserInfo(user.getEmail());
-                map.put("UserID", userInfo.getUserID());
-                map.put("UserName", userInfo.getUsername());
-                map.put("token", token);
-                try {
-                    json = objectMapper.writeValueAsString(map);
-                } catch (JsonProcessingException e) {
-                    e.printStackTrace();
-                }
-                return json;
+
+            UserInfo userInfo = userMapper.getUserInfo(user.getEmail());
+            map.put("UserID", userInfo.getUserID());
+            map.put("UserName", userInfo.getUsername());
+            map.put("token", token);
+            if (b != null) {
+                map.put("info", "1");
             } else {
-                map.put("UserID", null);
-                map.put("UserName", null);
-                map.put("token", token);
-                try {
-                    json = objectMapper.writeValueAsString(map);
-                } catch (JsonProcessingException e) {
-                    e.printStackTrace();
-                }
-                return json;
+                map.put("info", "0");
             }
+            try {
+                json = objectMapper.writeValueAsString(map);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+            return json;
         } else {
             return "查询错误";
         }
@@ -202,10 +209,14 @@ public class UserServiceImpl implements UserService {
         List<Bill> billList = userMapper.selectBill(userId);
         for (Bill bill : billList) {
 
-            String username = userMapper.selectUserName(bill.getReceiveUser());
-            bill.setReceiveUsername(username);
-            if (bill.getReceiveUser().equals(userId)) {
+            String Receiveusername = userMapper.selectUserName(bill.getReceiveUser());
+            bill.setReceiveUsername(Receiveusername);
+            String Payusername = userMapper.selectUserName(bill.getPayUser());
+            bill.setPayUsername(Payusername);
+            if (bill.getReceiveUser().equals(bill.getPayUser())) {
                 bill.setType("top-up");
+            } else if (bill.getReceiveUser().equals(userId)) {
+                bill.setType("receive");
             } else {
                 bill.setType("pay");
             }
@@ -215,7 +226,7 @@ public class UserServiceImpl implements UserService {
         SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy", Locale.ENGLISH);
         objectMapper.setDateFormat(sdf);
         try {
-            json = objectMapper.writeValueAsString(billList).replace("receiveUsername","name").replace("date","dateString");
+            json = objectMapper.writeValueAsString(billList).replace("date", "dateString");
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
@@ -626,7 +637,7 @@ public class UserServiceImpl implements UserService {
         List<Company> companyList = userMapper.selectCompany();
 
         try {
-            json = objectMapper.writeValueAsString(companyList);
+            json = objectMapper.writeValueAsString(companyList).replace("c_name", "name").replace("c_address", "address").replace("c_Mobile", "mobile");
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
@@ -634,7 +645,20 @@ public class UserServiceImpl implements UserService {
         return json;
     }
 
-}
+    @Override
+    public String getAccessToken(String token) {
+        String email = tokenUtil.getValue(token);
+        String AccessToken = tokenUtil.generateaccessToken(email);
+        Map<String, Object> map = new HashMap<>();
+        map.put("AccessToken", AccessToken);
+        try {
+            json = objectMapper.writeValueAsString(map);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
 
+        return json;
+    }
+}
 
 

@@ -26,6 +26,19 @@ public class TokenUtil {
         String token;
         token = JWT.create()
                 .withAudience(user.getEmail())
+                .withJWTId("refreshToken")
+                .withExpiresAt(date)
+                .sign(algorithm);
+        return token;
+    }
+
+    public String generateaccessToken(String email){
+
+        Date date = new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000);
+        String token;
+        token = JWT.create()
+                .withAudience(email)
+                .withJWTId("accessToken")
                 .withExpiresAt(date)
                 .sign(algorithm);
         return token;
@@ -38,6 +51,11 @@ public class TokenUtil {
 
     public String getValue(String token){
         String value = JWT.decode(token).getAudience().get(0);
+        return value;
+    }
+
+    public String getJWTId(String token){
+        String value = JWT.decode(token).getId();
         return value;
     }
 

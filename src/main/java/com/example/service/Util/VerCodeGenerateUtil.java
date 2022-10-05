@@ -18,12 +18,12 @@ public class VerCodeGenerateUtil {
         }
         return new String(numbers);
     }
-    public static String generateUserID() {
+    public static StringBuffer generateUserID() {
         char[] numbers = new char[16];
         for (int i = 0; i < numbers.length; i++) {
             numbers[i] = SYMBOL.charAt(RANDOM.nextInt(SYMBOL.length()));
         }
-        return new String(numbers);
+        return new StringBuffer(String.valueOf(numbers));
     }
 }
 

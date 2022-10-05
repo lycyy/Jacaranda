@@ -1,6 +1,7 @@
 package com.example.service.Config;
 
-import com.example.service.Authenticatiolnterceptor;
+import com.example.service.Interceptor.AccesstokenInterceptor;
+import com.example.service.Interceptor.Authenticatiolnterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -13,10 +14,18 @@ public class InterceptorConfig implements WebMvcConfigurer {
         return new Authenticatiolnterceptor();
     }
 
+    @Bean
+    public AccesstokenInterceptor accesstokenInterceptor(){return new AccesstokenInterceptor();}
+
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(authenticatiolnterceptor())
+                .addPathPatterns("/getAccesstoken")
+
+                ;
+
+        registry.addInterceptor(accesstokenInterceptor())
                 .addPathPatterns("/**")
                 .excludePathPatterns("/email")
                 .excludePathPatterns("/code")
@@ -26,6 +35,7 @@ public class InterceptorConfig implements WebMvcConfigurer {
                 .excludePathPatterns("/sendCode")
                 .excludePathPatterns("/setPswd")
                 .excludePathPatterns("/forgotPswd")
+                .excludePathPatterns("/getAccesstoken")
                 .excludePathPatterns("/company/authorizationCode")
                 .excludePathPatterns("/company/login")
                 .excludePathPatterns("/company/code")

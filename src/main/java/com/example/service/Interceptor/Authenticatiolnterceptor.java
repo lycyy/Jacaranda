@@ -1,4 +1,4 @@
-package com.example.service;
+package com.example.service.Interceptor;
 
 import com.auth0.jwt.exceptions.AlgorithmMismatchException;
 import com.auth0.jwt.exceptions.SignatureVerificationException;
@@ -17,12 +17,13 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
 //拦截器类
 
-    public class Authenticatiolnterceptor implements HandlerInterceptor {
+public class Authenticatiolnterceptor implements HandlerInterceptor {
 
     @Autowired
     public TokenUtil tokenUtil;
@@ -32,19 +33,23 @@ import java.util.Map;
     Logger logger = LoggerFactory.getLogger(getClass());
 
 
-
     String token = new String();
     Map<String, Object> map = new HashMap<>();
 
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        Date date = new Date();
         logger.info("进入拦截器");
+        Map<String, Object> headerMap = new HashMap<>();
         ObjectMapper objectMapper = new ObjectMapper();
         token = tokenUtil.getToken(request);
+        Enumeration headerNames = request.getHeaderNames();
+        while (headerNames.hasMoreElements()) {
+            String headerName = (String) headerNames.nextElement();
+            logger.info("Header Name - " + headerName + ", Value - " + request.getHeader(headerName));
+        }
 
-
+        
         User user = new User();
         if (StringUtils.isEmpty(token)) {
             map.put("msg", "None token");

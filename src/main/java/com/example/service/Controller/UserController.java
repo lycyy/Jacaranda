@@ -308,6 +308,14 @@ public class UserController {
         }
         return result;
     }
+    @PostMapping("/getAccesstoken")
+    public Result setPswd(@RequestHeader(value = "token") String token) {
+        logger.info("getAccesstoken interface is call");
+        String AccessToken = userService.getAccessToken(token);
+        Result result = new Result();
+        result = result.success("GET AccessToken",AccessToken);
+        return result;
+    }
 
 
 }

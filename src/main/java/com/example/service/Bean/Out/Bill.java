@@ -4,6 +4,10 @@ import java.sql.Timestamp;
 
 public class Bill {
     private String type;
+
+    private String payUser;
+
+    private String payUsername;
     private String receiveUser;
     private String receiveUsername;
     private String Amount;
@@ -47,5 +51,21 @@ public class Bill {
 
     public void setDate(Timestamp date) {
         Date = date;
+    }
+
+    public String getPayUser() {
+        return payUser;
+    }
+
+    public void setPayUser(String payUser) {
+        this.payUser = payUser;
+    }
+
+    public String getPayUsername() {
+        return payUsername;
+    }
+
+    public void setPayUsername(String payUsername) {
+        this.payUsername = payUsername;
     }
 }

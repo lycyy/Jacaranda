@@ -33,7 +33,10 @@ public interface UserMapper {
     @Select("SELECT count(*) FROM UserInfo WHERE UserName = #{username}")
     int checkUsername(String username);
 
-    @Select("SELECT receiveUser,Amount,Date FROM Transaction WHERE payUser=#{payUser}")
+    @Select("SELECT Mobile FROM UserInfo WHERE Email = #{email} ")
+    String checkUserInfo(String email);
+
+    @Select("SELECT payUser,receiveUser,Amount,Date FROM Transaction WHERE payUser=#{payUser} OR receiveUser=#{payUser}")
     List<Bill> selectBill(String payUser);
 
     @Select("SELECT UserID FROM UserInfo WHERE Email = #{Email}")
@@ -63,7 +66,7 @@ public interface UserMapper {
     @Select("SELECT Balance FROM UserInfo WHERE CustomerId = #{CustomerId}")
     String getBalance(String CustomerId);
 
-    @Select("SELECT C_name,C_Mobile,C_address FROM Company")
+    @Select("SELECT C_name,C_Mobile,C_address,Type FROM Company")
     List<Company> selectCompany();
 
     @Select("SELECT count(*) FROM UserInfo WHERE UserName = #{username}")
@@ -111,6 +114,9 @@ public interface UserMapper {
 
     @Update("UPDATE UserInfo SET PictureName = #{PictureName} WHERE Email = #{email}")
     void updatePictureName(String PictureName, String email);
+
+    @Update("UPDATE UserInfo SET Mobile= #{Mobile},Pin= md5(#{pin}),Balance= #{Balance},CustomerId= #{CustomerId},PictureName= #{PictureName} WHERE Email = #{email}")
+    void updateUserInfo(String Mobile,String pin,String Balance,String CustomerId,String PictureName, String email);
 
 
 
