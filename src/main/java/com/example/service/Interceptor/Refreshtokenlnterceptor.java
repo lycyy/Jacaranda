@@ -16,14 +16,13 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
 //拦截器类
 
-public class Authenticatiolnterceptor implements HandlerInterceptor {
+public class Refreshtokenlnterceptor implements HandlerInterceptor {
 
     @Autowired
     public TokenUtil tokenUtil;
@@ -55,14 +54,25 @@ public class Authenticatiolnterceptor implements HandlerInterceptor {
             map.put("msg", "None token");
             map.put("code", "401");
             String json = objectMapper.writeValueAsString(map);
-            response.getWriter().append(json);
+            response.getOutputStream().print(json);
+            return false;
         }
         int num = userMapper.checkallUser(tokenUtil.getValue(token));
         if (num == 0) {
             map.put("msg", "No user");
             map.put("code", "400");
             String json = objectMapper.writeValueAsString(map);
-            response.getWriter().append(json);
+            response.getOutputStream().print(json);
+            return false;
+        }
+
+        String Id = tokenUtil.getJWTId(token);
+        if (!(Id.equals("refreshToken"))) {
+            map.put("msg", "Type error");
+            map.put("code", "402");
+            String json = objectMapper.writeValueAsString(map);
+            response.getOutputStream().print(json);
+            return false;
         }
         //验签
         try {
@@ -71,24 +81,28 @@ public class Authenticatiolnterceptor implements HandlerInterceptor {
         } catch (SignatureVerificationException e) {
             e.printStackTrace();
             map.put("msg", "invalid sign");
-            map.put("code", "401");
+            map.put("code", "403");
         } catch (TokenExpiredException e) {
             e.printStackTrace();
-            map.put("code", "401");
+            map.put("code", "404");
             map.put("msg", "token timeout");
 
         } catch (AlgorithmMismatchException e) {
             e.printStackTrace();
             map.put("msg", "token算法不一致");
-            map.put("code", "401");
+            map.put("code", "405");
         } catch (Exception e) {
             e.printStackTrace();
             map.put("msg", "token无效");
-            map.put("code", "401");
+            map.put("code", "406");
+        }finally {
+            map.put("msg", "Network error");
+            map.put("code", "500");
         }
 
         String json = objectMapper.writeValueAsString(map);
-        response.getWriter().append(json);
+//        response.getWriter().append(json);
+        response.getOutputStream().print(json);
         return false;
 
     }

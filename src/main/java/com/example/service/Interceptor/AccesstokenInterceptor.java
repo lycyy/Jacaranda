@@ -37,6 +37,7 @@ public class AccesstokenInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         logger.info("进入拦截器");
         Map<String, Object> headerMap = new HashMap<>();
+        String json = new String();
         ObjectMapper objectMapper = new ObjectMapper();
         token = tokenUtil.getToken(request);
         Enumeration headerNames = request.getHeaderNames();
@@ -48,15 +49,28 @@ public class AccesstokenInterceptor implements HandlerInterceptor {
         if (StringUtils.isEmpty(token)) {
             map.put("msg", "None token");
             map.put("code", "401");
-            String json = objectMapper.writeValueAsString(map);
-            response.getWriter().append(json);
+            json = objectMapper.writeValueAsString(map);
+            response.getOutputStream().print(json);
+            return false;
+
+        }
+        int num = userMapper.checkallUser(tokenUtil.getValue(token));
+        if (num == 0) {
+            map.put("msg", "No user");
+            map.put("code", "400");
+            json = objectMapper.writeValueAsString(map);
+            response.getOutputStream().print(json);
+            return false;
+
         }
         String Id = tokenUtil.getJWTId(token);
         if (!(Id.equals("accessToken"))) {
             map.put("msg", "Type error");
-            map.put("code", "400");
-            String json = objectMapper.writeValueAsString(map);
-            response.getWriter().append(json);
+            map.put("code", "402");
+            json = objectMapper.writeValueAsString(map);
+            response.getOutputStream().print(json);
+            return false;
+
         }
         //验签
         try {
@@ -65,27 +79,27 @@ public class AccesstokenInterceptor implements HandlerInterceptor {
         } catch (SignatureVerificationException e) {
             e.printStackTrace();
             map.put("msg", "invalid sign");
-            map.put("code", "401");
+            map.put("code", "403");
         } catch (TokenExpiredException e) {
             e.printStackTrace();
-            map.put("code", "401");
+            map.put("code", "404");
             map.put("msg", "token timeout");
 
         } catch (AlgorithmMismatchException e) {
             e.printStackTrace();
             map.put("msg", "token算法不一致");
-            map.put("code", "401");
+            map.put("code", "405");
         } catch (Exception e) {
             e.printStackTrace();
             map.put("msg", "token无效");
-            map.put("code", "401");
+            map.put("code", "406");
         }finally {
             map.put("msg", "Network error");
             map.put("code", "500");
         }
 
-        String json = objectMapper.writeValueAsString(map);
-        response.getWriter().append(json);
+        json = objectMapper.writeValueAsString(map);
+        response.getOutputStream().print(json);
         return false;
 
     }

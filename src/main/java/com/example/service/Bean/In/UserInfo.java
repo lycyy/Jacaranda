@@ -5,6 +5,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserInfo {
     private String UserID;
+
+    private String password;
     private String email;
     private String username;
     private String Mobile;
@@ -12,6 +14,14 @@ public class UserInfo {
     private String Balance;
     private String CustomerId;
     private String PictureName;
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
     public String getCustomerId() {
         return CustomerId;

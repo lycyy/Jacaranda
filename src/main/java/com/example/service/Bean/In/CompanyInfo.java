@@ -5,10 +5,28 @@ import org.springframework.stereotype.Component;
 @Component
 public class CompanyInfo {
     private String CompanyID;
+    private String password;
     private String Picture;
     private String C_name;
     private String C_Mobile;
     private String C_address;
+    private String type;
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
     public String getC_address() {
         return C_address;

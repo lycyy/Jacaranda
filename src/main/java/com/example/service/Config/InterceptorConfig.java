@@ -1,7 +1,7 @@
 package com.example.service.Config;
 
 import com.example.service.Interceptor.AccesstokenInterceptor;
-import com.example.service.Interceptor.Authenticatiolnterceptor;
+import com.example.service.Interceptor.Refreshtokenlnterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -10,8 +10,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class InterceptorConfig implements WebMvcConfigurer {
 
     @Bean
-    public Authenticatiolnterceptor authenticatiolnterceptor() {
-        return new Authenticatiolnterceptor();
+    public Refreshtokenlnterceptor refreshtokenlnterceptor() {
+        return new Refreshtokenlnterceptor();
     }
 
     @Bean
@@ -20,9 +20,9 @@ public class InterceptorConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(authenticatiolnterceptor())
+        registry.addInterceptor(refreshtokenlnterceptor())
                 .addPathPatterns("/getAccesstoken")
-
+                .addPathPatterns("/testToken")
                 ;
 
         registry.addInterceptor(accesstokenInterceptor())
@@ -39,6 +39,7 @@ public class InterceptorConfig implements WebMvcConfigurer {
                 .excludePathPatterns("/company/authorizationCode")
                 .excludePathPatterns("/company/login")
                 .excludePathPatterns("/company/code")
+                .excludePathPatterns("/testToken")
                 .excludePathPatterns("/company/register");
         }
     }

@@ -79,11 +79,7 @@ public class CompanyUserServiceImpl implements CompanyUserService {
         String username = redisService.get(email + "u");
         String realemails = redisService.get(codes);
         if (email.equals(realemails)) {
-            User user = new User();
-            user.setEmail(email);
-            user.setPassword(redisService.get(email + "p") + SIGN);
-            companyUserMapper.addUser(user);
-
+            companyInfo.setPassword(redisService.get(email + "p") + SIGN);
             companyInfo.setCompanyID(String.valueOf(UserID));
             companyInfo.setEmail(email);
             companyInfo.setC_name(username);
@@ -104,7 +100,9 @@ public class CompanyUserServiceImpl implements CompanyUserService {
         companyInfo.setEmail(UserEmail);
         companyInfo.setPicture("R.png");
         companyInfo.setBalance("0");
-        companyUserMapper.updateUserInfo(companyInfo.getC_Mobile(),companyInfo.getC_address(),companyInfo.getBalance(),companyInfo.getPicture(), UserEmail);;
+        String type = companyInfo.getType();
+
+        companyUserMapper.updateUserInfo(companyInfo.getC_Mobile(),companyInfo.getC_address(),companyInfo.getBalance(),companyInfo.getPicture(), type,UserEmail);
         return 1;
     }
 
@@ -115,7 +113,8 @@ public class CompanyUserServiceImpl implements CompanyUserService {
         user.setPassword(password);
         int a = companyUserMapper.checkUser(user);
         String b = companyUserMapper.checkUserInfo(user.getEmail());
-        String token = tokenUtil.generateToken(user);
+        String RefreshToken = tokenUtil.generateToken(user);
+        String AccessToken = tokenUtil.generateaccessToken(user.getEmail());
         Map<String, Object> map = new HashMap<>();
         if (a != 0) {
 
@@ -123,7 +122,8 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 
             map.put("UserID", companyInfo.getCompanyID());
             map.put("UserName", companyInfo.getC_name());
-            map.put("token", token);
+            map.put("RefreshToken", RefreshToken);
+            map.put("AccessToken", AccessToken);
 
             if (b != null) {
                 map.put("info", "1");

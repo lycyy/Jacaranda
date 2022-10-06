@@ -1,12 +1,16 @@
+jasypt:
+  encryptor:
+    algorithm: PBEWithMD5AndDES
+
 spring:
   datasource:
-    url: jdbc:mysql://lycyy.cc:3306/paySystem?characterEncoding=utf8
-    username: admin
-    password: 2007360266
+#    url: jdbc:mysql://lycyy.cc:3306/paySystem?characterEncoding=utf8
+#    username: admin
+#    password: ENC(i6G1WjmEIMwOIg2pBo2haSufVyBES1RbO5bMpyQpBIw=)
 
-#    url: jdbc:mysql://localhost:3306/paySystem?characterEncoding=utf8
-#    username: root
-#    password: 123456
+    url: jdbc:mysql://localhost:3306/paySystem?characterEncoding=utf8
+    username: root
+    password: ENC(/J7WYf1wEoa5/buoytiE59kSx0ltW/hP)
     driver-class-name: com.mysql.cj.jdbc.Driver
   servlet:
     multipart:
@@ -16,7 +20,7 @@ spring:
   mail:
     host: smtp.office365.com
     username: ccacc111222@outlook.com
-    password: Lyc123456 #mail账号密码
+    password: ENC(U4EjBfEJzYYMv6BPTX9PWsanzAkjpsNQN64fA6IE7rw=)#mail账号密码
     protocol: smtp
     port: 587
 
@@ -27,6 +31,8 @@ spring:
     default-encoding: UTF-8
 
 
+
+
   redis:
     # redis库
     database: 0
@@ -35,7 +41,7 @@ spring:
     # redis 端口号
     port: 6379
     # redis 密码
-    password: 2007360266
+    password: ENC(H3enDmclcdHO65f7b0YsZ6Nla3KX9fqTXvSaxtLRIQg=)
     # 连接超时时间（毫秒）
     timeout: 1000
     lettuce:
@@ -49,3 +55,8 @@ spring:
         # 连接池最小空闲连接数
         min-idle: 0
 
+constant:
+  Stripe_apiKey: ENC(jBOUgZw21S8aWzSG9CrYj6GYLksVYQ7w/kIdoLy0IgTd5d9XzEtVQo9Jm7Wgn624zB/3ZLGwvpbPj1H+DADlzwub5IOshBUOMJeib1K9TYxNjFwCfrXDGYgzsR1wYCYhAwx7t5MGuZOhlGQ7MCk79Vy73vMXv1CRrnf7FiXe9Q0=)
+  Password_salt: ENC(MyqFiTOVQh2yI6dIXdFP7izVcOolZ/kC+iQSnIylHR3E9ItfAet0cw==)
+  Token_key: ENC(Lx/Fkx+UhwFPQGudkTf6+7SypPQRP1bf7738jl0zmVPgWprZ7LtcGQ==)
+  RSA_seed: ENC(REXEnAnACHiRksMzohI4MNT+hEvblIzjHckcPtOrw59WoE+XOmQPgg==)

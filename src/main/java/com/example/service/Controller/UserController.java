@@ -5,6 +5,7 @@ import com.example.service.Bean.In.*;
 import com.example.service.Mapper.UserMapper;
 import com.example.service.Service.ServiceImpl.WebSocketService;
 import com.example.service.Service.UserService;
+import com.example.service.Util.ConfigurationUtil;
 import com.example.service.Util.TokenUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,12 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.web.bind.annotation.*;
 
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.Month;
-import java.time.format.TextStyle;
 import java.util.Date;
-import java.util.Locale;
 
 @RestController
 @ResponseBody
@@ -30,6 +26,8 @@ public class UserController {
     UserMapper userMapper;
     @Autowired
     WebSocketService webSocketService;
+    @Autowired
+    ConfigurationUtil configuration;
 
     Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -315,6 +313,19 @@ public class UserController {
         Result result = new Result();
         result = result.success("GET AccessToken",AccessToken);
         return result;
+    }
+    @PostMapping("/get")
+    public Result get(){
+
+
+        return Result.success(configuration.getRSA_seed()+"||"+configuration.getPassword_salt()+"||"+configuration.getStripe_apiKey()+"||"+configuration.getToken_key());
+    }
+    public String Config(){
+       String a = configuration.getRSA_seed();
+       String b =  configuration.getPassword_salt();
+        String c =  configuration.getStripe_apiKey();
+        String d = configuration.getToken_key();
+        return d;
     }
 
 

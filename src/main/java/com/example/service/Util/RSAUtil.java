@@ -1,12 +1,13 @@
 package com.example.service.Util;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
 
 import javax.crypto.Cipher;
 import java.io.ByteArrayOutputStream;
 
-import java.math.BigInteger;
 import java.security.*;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
@@ -14,17 +15,17 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.HashMap;
 import java.util.Map;
-
+@Component
 public class RSAUtil {
-
-    public static final String SEED = "Jacaranda2022";
-    public static final String KEY_ALGORITHM = "RSA";
+    static Constant constant = new Constant();
+    @Autowired
+    ConfigurationUtil configurationUtil;
+    public static String seed = constant.getRSA_seed();
 
     private static final String PUBLIC_KEY = "RSAPublicKey";
-
     private static final String PRIVATE_KEY = "RSAPrivateKey";
-
     public static final String SIGNATURE_ALGORITHM = "MD5withRSA";
+    private static final String KEY_ALGORITHM = "RSA";
     /**
      * RSA最大加密明文大小
      * */
@@ -154,7 +155,7 @@ public class RSAUtil {
     }
 
     public static Map<String, Object> initKey() throws Exception {
-        SecureRandom secureRandom = new SecureRandom(SEED.getBytes());
+        SecureRandom secureRandom = new SecureRandom(seed.getBytes());
         KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance(KEY_ALGORITHM);
         keyPairGen.initialize(1024,secureRandom);
         KeyPair keyPair = keyPairGen.generateKeyPair();

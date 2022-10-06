@@ -12,6 +12,7 @@ import com.example.service.Mapper.UserMapper;
 import com.example.service.Service.EmailService;
 import com.example.service.Service.RedisService;
 import com.example.service.Service.UserService;
+import com.example.service.Util.Constant;
 import com.example.service.Util.TokenUtil;
 import com.example.service.Util.VerCodeGenerateUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -37,8 +38,6 @@ import java.util.*;
 
 @Service
 public class UserServiceImpl implements UserService {
-    static String SIGN = "0960543";
-
     @Autowired
     UserMapper userMapper;
     @Autowired
@@ -55,9 +54,9 @@ public class UserServiceImpl implements UserService {
     WebSocketService webSocketService;
     @Autowired
     CompanyUserMapper companyUserMapper;
-
+    Constant constant = new Constant();
     ObjectMapper objectMapper = new ObjectMapper();
-
+    String SIGN = constant.getPassword_salt();
     String json;
 
     //注册登录
@@ -96,11 +95,7 @@ public class UserServiceImpl implements UserService {
 
         String realemails = redisService.get(codes);
         if (email.equals(realemails)) {
-            User user = new User();
-            user.setEmail(email);
-            user.setPassword(redisService.get(email + "p") + SIGN);
-            userMapper.addUser(user);
-
+            userInfo.setPassword(redisService.get(email + "p") + SIGN);
             userInfo.setUserID(String.valueOf(UserID));
             userInfo.setUsername(redisService.get(email + "u"));
             userInfo.setEmail(email);
@@ -115,7 +110,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public int info(UserInfo userInfo, String token) {
-        Stripe.apiKey = "sk_test_51LImNKAOiNy9BWzWHWwXKchph0iHIA8eySN5eDNYtxL9LLrNzFISXmTOHrjrpEnvbF1pKyRCaG9BcqnWXjcNNPnf00vUzWYyjr";
+        Stripe.apiKey = constant.getStripe_apiKey();
 
         String UserEmail = tokenUtil.getValue(token);
 
@@ -143,7 +138,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public String checkUser(User user) {
         user.setPassword(user.getPassword() + SIGN);
-        String token = tokenUtil.generateToken(user);
+        String RefreshToken = tokenUtil.generateToken(user);
+        String AccessToken = tokenUtil.generateaccessToken(user.getEmail());
         Map<String, Object> map = new HashMap<>();
         int a = userMapper.checkUser(user);
         String b = userMapper.checkUserInfo(user.getEmail());
@@ -152,7 +148,8 @@ public class UserServiceImpl implements UserService {
             UserInfo userInfo = userMapper.getUserInfo(user.getEmail());
             map.put("UserID", userInfo.getUserID());
             map.put("UserName", userInfo.getUsername());
-            map.put("token", token);
+            map.put("RefreshToken", RefreshToken);
+            map.put("AccessToken", AccessToken);
             if (b != null) {
                 map.put("info", "1");
             } else {
