@@ -316,17 +316,9 @@ public class UserController {
     }
     @PostMapping("/get")
     public Result get(){
-
-
         return Result.success(configuration.getRSA_seed()+"||"+configuration.getPassword_salt()+"||"+configuration.getStripe_apiKey()+"||"+configuration.getToken_key());
     }
-    public String Config(){
-       String a = configuration.getRSA_seed();
-       String b =  configuration.getPassword_salt();
-        String c =  configuration.getStripe_apiKey();
-        String d = configuration.getToken_key();
-        return d;
-    }
+    
 
 
 }

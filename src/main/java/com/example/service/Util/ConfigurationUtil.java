@@ -3,8 +3,11 @@ package com.example.service.Util;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+
 @Component
 public class ConfigurationUtil {
+    public static ConfigurationUtil configurationUtil;
 
     public static String RSA_seed;
     @Value("${constant.Stripe_apiKey}")
@@ -48,9 +51,12 @@ public class ConfigurationUtil {
         ConfigurationUtil.RSA_seed = RSA_seed;
     }
 
-    public static void main(String[] args) {
-
-
+    @Override
+    public String toString() {
+        return "ConfigurationUtil{" +
+                "Stripe_apiKey='" + Stripe_apiKey + '\'' +
+                ", Password_salt='" + Password_salt + '\'' +
+                ", Token_key='" + Token_key + '\'' +
+                '}';
     }
-
 }

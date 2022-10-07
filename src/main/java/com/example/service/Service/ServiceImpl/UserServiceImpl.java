@@ -12,7 +12,7 @@ import com.example.service.Mapper.UserMapper;
 import com.example.service.Service.EmailService;
 import com.example.service.Service.RedisService;
 import com.example.service.Service.UserService;
-import com.example.service.Util.Constant;
+import com.example.service.Util.ConfigurationUtil;
 import com.example.service.Util.TokenUtil;
 import com.example.service.Util.VerCodeGenerateUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -54,10 +55,19 @@ public class UserServiceImpl implements UserService {
     WebSocketService webSocketService;
     @Autowired
     CompanyUserMapper companyUserMapper;
-    Constant constant = new Constant();
+
     ObjectMapper objectMapper = new ObjectMapper();
-    String SIGN = constant.getPassword_salt();
+    @Autowired
+    ConfigurationUtil configurationUtil;
+    String salt;
     String json;
+    String Stripe_apikey;
+
+    @PostConstruct
+    public void init() {
+        salt = this.configurationUtil.getToken_key();
+        Stripe_apikey = this.configurationUtil.getStripe_apiKey();
+    }
 
     //注册登录
     @Override
@@ -95,7 +105,7 @@ public class UserServiceImpl implements UserService {
 
         String realemails = redisService.get(codes);
         if (email.equals(realemails)) {
-            userInfo.setPassword(redisService.get(email + "p") + SIGN);
+            userInfo.setPassword(redisService.get(email + "p") + salt);
             userInfo.setUserID(String.valueOf(UserID));
             userInfo.setUsername(redisService.get(email + "u"));
             userInfo.setEmail(email);
@@ -110,7 +120,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public int info(UserInfo userInfo, String token) {
-        Stripe.apiKey = constant.getStripe_apiKey();
+        Stripe.apiKey = Stripe_apikey;
 
         String UserEmail = tokenUtil.getValue(token);
 
@@ -126,7 +136,7 @@ public class UserServiceImpl implements UserService {
         String cid = customer.getId();
         //注入属性
 
-        userInfo.setPin(userInfo.getPin() + SIGN);
+        userInfo.setPin(userInfo.getPin() + salt);
         userInfo.setCustomerId(cid);
         userInfo.setBalance("0");
         userInfo.setPictureName("R.png");
@@ -137,7 +147,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String checkUser(User user) {
-        user.setPassword(user.getPassword() + SIGN);
+        user.setPassword(user.getPassword() + salt);
         String RefreshToken = tokenUtil.generateToken(user);
         String AccessToken = tokenUtil.generateaccessToken(user.getEmail());
         Map<String, Object> map = new HashMap<>();
@@ -320,7 +330,7 @@ public class UserServiceImpl implements UserService {
     public int checkPayPswd(String PayPswd, String token) {
         String payEmail = tokenUtil.getValue(token);
         String payUser = userMapper.getUserId(payEmail);
-        int num = userMapper.checkPayPswd(payEmail, PayPswd + SIGN);
+        int num = userMapper.checkPayPswd(payEmail, PayPswd + salt);
         if (num == 1) {
             redisService.set(payUser, "true");
             return 1;
@@ -540,10 +550,10 @@ public class UserServiceImpl implements UserService {
         User user = new User();
         String receiveEmail = tokenUtil.getValue(token);
         user.setEmail(receiveEmail);
-        user.setPassword(userPswd.getOldPswd() + SIGN);
+        user.setPassword(userPswd.getOldPswd() + salt);
         int a = userMapper.checkUser(user);
         if (a != 0) {
-            userMapper.changePswd(userPswd.getNewPswd() + SIGN, receiveEmail);
+            userMapper.changePswd(userPswd.getNewPswd() + salt, receiveEmail);
             return 1;
         } else {
             return 0;
@@ -554,9 +564,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public int changePayPswd(UserPin userPin, String token) {
         String receiveEmail = tokenUtil.getValue(token);
-        int num = userMapper.checkPayPswd(receiveEmail, userPin.getOldPin() + SIGN);
+        int num = userMapper.checkPayPswd(receiveEmail, userPin.getOldPin() + salt);
         if (num != 0) {
-            userMapper.changePayPswd(userPin.getNewPin() + SIGN, receiveEmail);
+            userMapper.changePayPswd(userPin.getNewPin() + salt, receiveEmail);
             return 1;
         } else {
             return 0;
@@ -602,7 +612,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public int setPswd(User user) {
         String email = user.getEmail();
-        String pswd = user.getPassword() + SIGN;
+        String pswd = user.getPassword() + salt;
         if (userMapper.findUser(email) != 0) {
             userMapper.changePswd(pswd, email);
             return 1;

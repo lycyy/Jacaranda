@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
 
+import javax.annotation.PostConstruct;
 import javax.crypto.Cipher;
 import java.io.ByteArrayOutputStream;
 
@@ -17,10 +18,13 @@ import java.util.HashMap;
 import java.util.Map;
 @Component
 public class RSAUtil {
-    static Constant constant = new Constant();
     @Autowired
     ConfigurationUtil configurationUtil;
-    public static String seed = constant.getRSA_seed();
+    public static String seed ;
+    @PostConstruct
+    public void init() {
+        seed = this.configurationUtil.getRSA_seed();
+    }
 
     private static final String PUBLIC_KEY = "RSAPublicKey";
     private static final String PRIVATE_KEY = "RSAPrivateKey";

@@ -8,6 +8,7 @@ import com.example.service.Controller.UserController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Calendar;
 import java.util.Date;
@@ -15,19 +16,29 @@ import java.util.Date;
 @Component
 public class TokenUtil {
 
+    @Autowired
+    ConfigurationUtil configurationUtil;
 
+    private static String sign;
 
+    @PostConstruct
+    public void init() {
+        sign = this.configurationUtil.getToken_key();
+    }
 
-    Constant constant = new Constant();
 
     public TokenUtil() {
     }
-    String sign = constant.getToken_key();
-    Algorithm algorithm = Algorithm.HMAC256(sign);
+
+
+    public Algorithm getAlgorithm() {
+        Algorithm algorithm = Algorithm.HMAC256(sign);
+        return algorithm;
+    }
 
     //生成Token
-    public String generateToken(User user){
-
+    public String generateToken(User user) {
+        Algorithm algorithm = getAlgorithm();
         Date date = new Date(System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000);
         String token;
         token = JWT.create()
@@ -38,8 +49,8 @@ public class TokenUtil {
         return token;
     }
 
-    public String generateaccessToken(String email){
-
+    public String generateaccessToken(String email) {
+        Algorithm algorithm = getAlgorithm();
 
         Date date = new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000);
         String token;
@@ -48,25 +59,26 @@ public class TokenUtil {
                 .withJWTId("accessToken")
                 .withExpiresAt(date)
                 .sign(algorithm);
+        System.out.println(configurationUtil.getToken_key());
         return token;
     }
 
-    public String getToken(HttpServletRequest request){
+    public String getToken(HttpServletRequest request) {
         String token = request.getHeader("token");
         return token;
     }
 
-    public String getValue(String token){
+    public String getValue(String token) {
         String value = JWT.decode(token).getAudience().get(0);
         return value;
     }
 
-    public String getJWTId(String token){
+    public String getJWTId(String token) {
         String value = JWT.decode(token).getId();
         return value;
     }
 
-    public int getExpiresAt(DecodedJWT decodedJWT){
+    public int getExpiresAt(DecodedJWT decodedJWT) {
         Date date = new Date();
         Date JWTdate = decodedJWT.getExpiresAt();
         Calendar calender1 = Calendar.getInstance();
@@ -78,15 +90,16 @@ public class TokenUtil {
         int JWTdates = calender2.get(Calendar.DATE);
 
         int refresh = JWTdates - dates;
-        if(refresh <= 2){
+        if (refresh <= 2) {
             return 1;
-        }else {
+        } else {
             return 0;
         }
 
     }
 
-    public  DecodedJWT verify(String token){
+    public DecodedJWT verify(String token) {
+        Algorithm algorithm = getAlgorithm();
         return JWT.require(algorithm).build().verify(token);
     }
 
