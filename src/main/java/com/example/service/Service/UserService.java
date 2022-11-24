@@ -10,6 +10,8 @@ public interface UserService {
 
     int verifyUser(Code code);
 
+    int username(User user);
+
     int info(UserInfo userInfo, String token);
 
     String checkUser(User user);
@@ -53,5 +55,7 @@ public interface UserService {
     String selectCompany();
 
     String getAccessToken(String token);
+
+    String Get_Promotion(String token);
 
 }

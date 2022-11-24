@@ -51,6 +51,18 @@ public class UserController {
         }
     }
 
+    @PostMapping("/checkusername")
+    public Result checkusername(@RequestBody User user){
+        logger.info("checkusername interface is call");
+        String username = user.getUsername();
+        int num = userService.username(user);
+        if (num == 1) {
+            return Result.success("用户名可以使用");
+        }else {
+            return Result.fail("用户名已被注册");
+        }
+    }
+
     @PostMapping("/code")
     public Result code(@RequestBody Code code) {
         logger.info("code interface is call");
@@ -313,6 +325,12 @@ public class UserController {
         Result result = new Result();
         result = result.success("GET AccessToken",AccessToken);
         return result;
+    }
+
+    @PostMapping("/Get_Promotion")
+    public Result Get_Promotion(@RequestHeader(value = "token") String token){
+        String json = userService.Get_Promotion(token);
+        return Result.success("查询成功",json);
     }
     @PostMapping("/get")
     public Result get(){

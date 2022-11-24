@@ -14,4 +14,5 @@ public interface CompanyUserService {
     public int setPswd(User user);
     int changeUsername(Usernames usernames, String token);
     int verifyUser(Code code);
+    int Publish_Promotion(Promotion promotion);
 }

@@ -146,6 +146,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public int username(User user) {
+        String username = user.getUsername();
+        int a = userMapper.checkUsername(username);
+        if (a == 1){
+            return 0;
+        }else {
+            return 1;
+        }
+    }
+
+    @Override
     public String checkUser(User user) {
         user.setPassword(user.getPassword() + salt);
         String RefreshToken = tokenUtil.generateToken(user);
@@ -268,8 +279,15 @@ public class UserServiceImpl implements UserService {
         Date before = new Date();
 
         String payUser = userId.getUserID();
-
-        webSocketService.sendMessage("Verify Paypassword", Long.parseLong(payUser));
+        String Amount = userId.getAmount();
+        Map<String, Object> map = new HashMap<>();
+        map.put("amount",Amount);
+        try {
+            json = objectMapper.writeValueAsString(map);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        webSocketService.sendMessage(json, Long.parseLong(payUser));
 
         while (t <= 90) {
             Date now = new Date();
@@ -327,10 +345,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public int checkPayPswd(String PayPswd, String token) {
+    public int checkPayPswd(String PIN, String token) {
         String payEmail = tokenUtil.getValue(token);
         String payUser = userMapper.getUserId(payEmail);
-        int num = userMapper.checkPayPswd(payEmail, PayPswd + salt);
+        int num = userMapper.checkPayPswd(payEmail, PIN + salt);
         if (num == 1) {
             redisService.set(payUser, "true");
             return 1;
@@ -649,6 +667,24 @@ public class UserServiceImpl implements UserService {
             e.printStackTrace();
         }
 
+        return json;
+    }
+
+    @Override
+    public String Get_Promotion(String token) {
+        Date date = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String dates = sdf.format(date);
+        List<Promotion> promotion = userMapper.Get_Promotion(dates);
+        for (Promotion promotions : promotion) {
+            System.out.println(promotions.getDate());
+        }
+
+        try {
+            json = objectMapper.writeValueAsString(promotion);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
         return json;
     }
 

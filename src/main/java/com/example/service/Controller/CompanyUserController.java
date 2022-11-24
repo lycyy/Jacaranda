@@ -121,7 +121,7 @@ public class CompanyUserController {
         if (num == 1) {
             result = result.success("修改成功");
         } else {
-            result = result.success("修改失败");
+            result = result.fail("修改失败");
         }
         return result;
     }
@@ -133,5 +133,18 @@ public class CompanyUserController {
         String bill = companyUserService.selectBill(token);
 
         return Result.success("查询成功", bill);
+    }
+
+    @PostMapping("/Publish_Promotion")
+    public Result Publish_Promotion(@RequestBody Promotion promotion ,@RequestHeader(value = "token") String token){
+        logger.info("Publish_Promotion interface is call");
+        Result result = new Result();
+        int num = companyUserService.Publish_Promotion(promotion);
+        if (num == 1) {
+            result = result.success("新增成功");
+        } else {
+            result = result.fail("新增失败");
+        }
+        return result;
     }
 }

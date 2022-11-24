@@ -18,13 +18,13 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
+import com.zaxxer.hikari.pool.HikariProxyCallableStatement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class CompanyUserServiceImpl implements CompanyUserService {
@@ -168,12 +168,12 @@ public class CompanyUserServiceImpl implements CompanyUserService {
         //查询用户账单
         List<CompanyBill> billList = companyUserMapper.selectBill(userId);
 
-
         objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy", Locale.ENGLISH);
         objectMapper.setDateFormat(sdf);
+
         try {
-            json = objectMapper.writeValueAsString(billList);
+            json = objectMapper.writeValueAsString(billList).replace("date", "dateString");;
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
@@ -219,5 +219,17 @@ public class CompanyUserServiceImpl implements CompanyUserService {
         }
     }
 
-
+    @Override
+    public int Publish_Promotion(Promotion promotion) {
+        Date date = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        String dates = sdf.format(date);
+        promotion.setDate(dates);
+        int a = companyUserMapper.Publish_Promotion(promotion);
+        if (a == 1) {
+            return 1;
+        }else {
+            return 0;
+        }
+    }
 }
