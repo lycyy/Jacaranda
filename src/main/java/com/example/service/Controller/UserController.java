@@ -114,17 +114,32 @@ public class UserController {
         return result;
     }
 
-    @PostMapping("/testToken")
-    public Result testToken(@RequestHeader(value = "token") String token) {
-        logger.info("testToken interface is call");
-        String json = userService.testToken(token);
+    @PostMapping("/testRefreshToken")
+    public Result testRefreshToken(@RequestHeader(value = "token") String token) {
+        logger.info("testRefreshToken interface is call");
+        String json = userService.testRefreshToken(token);
         Result result = new Result();
         if (json.equals("用户不存在")) {
             result = result.fail("验证失败");
         } else if (json.equals("验证成功")) {
             result = result.success("验证成功");
         } else {
-            result = result.success("更新Token", token);
+            result = result.success("更新Token", json);
+        }
+        return result;
+    }
+
+    @PostMapping("/testAccessToken")
+    public Result testAccessToken(@RequestHeader(value = "token") String token) {
+        logger.info("testAccessToken interface is call");
+        String json = userService.testAccessToken(token);
+        Result result = new Result();
+        if (json.equals("用户不存在")) {
+            result = result.fail("验证失败");
+        } else if (json.equals("验证成功")) {
+            result = result.success("验证成功");
+        } else {
+            result = result.success("更新Token", json);
         }
         return result;
     }
@@ -336,6 +351,8 @@ public class UserController {
     public Result get(){
         return Result.success(configuration.getRSA_seed()+"||"+configuration.getPassword_salt()+"||"+configuration.getStripe_apiKey()+"||"+configuration.getToken_key());
     }
+
+
     
 
 

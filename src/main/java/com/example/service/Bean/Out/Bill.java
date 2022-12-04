@@ -12,6 +12,15 @@ public class Bill {
     private String receiveUsername;
     private String Amount;
     private Timestamp Date;
+    private String Receipt;
+
+    public String getReceipt() {
+        return Receipt;
+    }
+
+    public void setReceipt(String receipt) {
+        Receipt = receipt;
+    }
 
     public String getType() {
         return type;

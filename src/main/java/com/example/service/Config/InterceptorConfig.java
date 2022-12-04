@@ -22,7 +22,7 @@ public class InterceptorConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(refreshtokenlnterceptor())
                 .addPathPatterns("/getAccesstoken")
-                .addPathPatterns("/testToken")
+                .addPathPatterns("/testRefreshToken")
                 ;
 
         registry.addInterceptor(accesstokenInterceptor())
@@ -43,7 +43,7 @@ public class InterceptorConfig implements WebMvcConfigurer {
                 .excludePathPatterns("/company/login")
                 .excludePathPatterns("/company/code")
                 .excludePathPatterns("/company/Publish_Promotion")
-                .excludePathPatterns("/testToken")
+                .excludePathPatterns("/testRefreshToken")
                 .excludePathPatterns("/company/register");
         }
     }

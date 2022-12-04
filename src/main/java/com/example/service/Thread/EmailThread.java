@@ -10,18 +10,21 @@ public class EmailThread extends Thread {
     private String subject;
     private String random;
 
+    private String operation;
 
-    public EmailThread(String email, String subject, String random,EmailService emailService) {
+
+    public EmailThread(String email, String subject, String operation , String random,EmailService emailService) {
         this.email = email;
         this.subject = subject;
         this.random = random;
+        this.operation = operation;
         this.emailService = emailService;
     }
 
     @Override
     public void run() {
-        System.out.println(random); 
-        emailService.sendMail(email, subject, random);
+//        emailService.sendMail(email, subject, random);
+        emailService.sendHtmlMail(email, subject,operation, random);
 
     }
 }

@@ -39,7 +39,7 @@ public interface UserMapper {
     @Select("SELECT Mobile FROM userinfo WHERE Email = #{email} ")
     String checkUserInfo(String email);
 
-    @Select("SELECT payUser,receiveUser,Amount,Date FROM transactionview WHERE payUser=#{payUser} OR receiveUser=#{payUser}")
+    @Select("SELECT payUser,receiveUser,Amount,Date,Receipt FROM transactionview WHERE payUser=#{payUser} OR receiveUser=#{payUser}")
     List<Bill> selectBill(String payUser);
 
     @Select("SELECT UserID FROM userinfo WHERE Email = #{Email}")
@@ -79,10 +79,10 @@ public interface UserMapper {
     List<Promotion> Get_Promotion(String Date);
 
     //插入
-    @Insert("INSERT INTO transaction (payUser,receiveUser,Amount,Date) VALUES (#{payUser},#{receiveUser},#{Amount},#{Date})")
+    @Insert("INSERT INTO transaction (payUser,receiveUser,Amount,Date,Receipt) VALUES (#{payUser},#{receiveUser},#{Amount},#{Date},#{Receipt})")
     int transferTo(Transaction transaction);
 
-    @Insert("INSERT INTO transaction_company (payUser,receiveUser,Amount,Date) VALUES (#{payUser},#{receiveUser},#{Amount},#{Date})")
+    @Insert("INSERT INTO transaction_company (payUser,receiveUser,Amount,Date,Receipt) VALUES (#{payUser},#{receiveUser},#{Amount},#{Date},#{Receipt})")
     int transferTo_Company(Transaction transaction);
 
     @Insert("INSERT INTO userinfo (UserID,password,Email,UserName,Mobile,Pin,Balance,CustomerId,PictureName) VALUES (#{UserID},md5(#{password}),#{email},#{username},#{Mobile},md5(#{pin}),#{Balance},#{CustomerId},#{PictureName})")

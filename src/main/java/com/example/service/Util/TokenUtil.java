@@ -37,7 +37,7 @@ public class TokenUtil {
     }
 
     //生成Token
-    public String generateToken(User user) {
+    public String generateRefreshToken(User user) {
         Algorithm algorithm = getAlgorithm();
         Date date = new Date(System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000);
         String token;
@@ -49,7 +49,7 @@ public class TokenUtil {
         return token;
     }
 
-    public String generateaccessToken(String email) {
+    public String generateAccessToken(String email) {
         Algorithm algorithm = getAlgorithm();
 
         Date date = new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000);
@@ -78,7 +78,7 @@ public class TokenUtil {
         return value;
     }
 
-    public int getExpiresAt(DecodedJWT decodedJWT) {
+    public int getExpiresAt(DecodedJWT decodedJWT,int i) {
         Date date = new Date();
         Date JWTdate = decodedJWT.getExpiresAt();
         Calendar calender1 = Calendar.getInstance();
@@ -90,7 +90,7 @@ public class TokenUtil {
         int JWTdates = calender2.get(Calendar.DATE);
 
         int refresh = JWTdates - dates;
-        if (refresh <= 2) {
+        if (refresh <= i) {
             return 1;
         } else {
             return 0;

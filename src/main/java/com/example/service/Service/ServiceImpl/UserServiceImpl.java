@@ -12,6 +12,7 @@ import com.example.service.Mapper.UserMapper;
 import com.example.service.Service.EmailService;
 import com.example.service.Service.RedisService;
 import com.example.service.Service.UserService;
+import com.example.service.Thread.EmailThread;
 import com.example.service.Util.ConfigurationUtil;
 import com.example.service.Util.TokenUtil;
 import com.example.service.Util.VerCodeGenerateUtil;
@@ -82,7 +83,7 @@ public class UserServiceImpl implements UserService {
             redisService.set(email + "u", username);
             redisService.set(text, email);
             System.out.println(text);
-//            new EmailThread(user.getEmail(), "Verification code", text, emailService).start();
+            new EmailThread(user.getEmail(), "Verification code","Register", text, emailService).start();
             return 1;
         } else {
             return 0;
@@ -159,8 +160,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public String checkUser(User user) {
         user.setPassword(user.getPassword() + salt);
-        String RefreshToken = tokenUtil.generateToken(user);
-        String AccessToken = tokenUtil.generateaccessToken(user.getEmail());
+        String RefreshToken = tokenUtil.generateRefreshToken(user);
+        String AccessToken = tokenUtil.generateAccessToken(user.getEmail());
         Map<String, Object> map = new HashMap<>();
         int a = userMapper.checkUser(user);
         String b = userMapper.checkUserInfo(user.getEmail());
@@ -188,7 +189,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String testToken(String token) {
+    public String testRefreshToken(String token) {
         String userEmail = tokenUtil.getValue(token);
         int num = userMapper.findUser(userEmail);
         if (num == 0) {
@@ -196,12 +197,12 @@ public class UserServiceImpl implements UserService {
         }
 
         DecodedJWT decodedJWT = tokenUtil.verify(token);
-        int a = tokenUtil.getExpiresAt(decodedJWT);
+        int a = tokenUtil.getExpiresAt(decodedJWT,1);
         if (a == 1) {
             String email = tokenUtil.getValue(token);
             User users = new User();
             users.setEmail(email);
-            String newToken = tokenUtil.generateToken(users);
+            String newToken = tokenUtil.generateRefreshToken(users);
 
             String json = null;
             try {
@@ -214,6 +215,35 @@ public class UserServiceImpl implements UserService {
             return "验证成功";
         }
 
+    }
+
+    @Override
+    public String testAccessToken(String token) {
+        String userEmail = tokenUtil.getValue(token);
+        int num = userMapper.findUser(userEmail);
+        if (num == 0) {
+            return "用户不存在";
+        }else {
+            return "验证成功";
+
+//        DecodedJWT decodedJWT = tokenUtil.verify(token);
+//        int a = tokenUtil.getExpiresAt(decodedJWT,1);
+//        if (a == 1) {
+//            String email = tokenUtil.getValue(token);
+//            User users = new User();
+//            users.setEmail(email);
+//            String newToken = tokenUtil.generateAccessToken(userEmail);
+//
+//            String json = null;
+//            try {
+//                json = objectMapper.writeValueAsString(newToken);
+//            } catch (JsonProcessingException e) {
+//                e.printStackTrace();
+//            }
+//            return json;
+//        }
+
+        }
 
     }
 
@@ -336,10 +366,12 @@ public class UserServiceImpl implements UserService {
         companyUserMapper.updateBalances(String.valueOf(receiveBalances), receiveUser);
 
         //存入数据库
+        String receipt = verCodeGenerateUtil.generateReceipt_number();
         transaction.setPayUser(payUser);
         transaction.setReceiveUser(receiveUser);
         transaction.setAmount(String.valueOf(amount));
         transaction.setDate(time);
+        transaction.setReceipt(receipt);
         userMapper.transferTo_Company(transaction);
         return 1;
     }
@@ -401,10 +433,12 @@ public class UserServiceImpl implements UserService {
         userMapper.updateBalance(String.valueOf(receiveBalances), receiveUser);
 
         //存入数据库
+        String receipt = verCodeGenerateUtil.generateReceipt_number();
         transaction.setPayUser(payUser);
         transaction.setReceiveUser(receiveUser);
         transaction.setAmount(String.valueOf(amount));
         transaction.setDate(time);
+        transaction.setReceipt(receipt);
         userMapper.transferTo(transaction);
         return 1;
 
@@ -437,7 +471,7 @@ public class UserServiceImpl implements UserService {
             e.printStackTrace();
         }
 
-        int realAmount = Integer.parseInt(Amounts.getAmounts()) * 100;
+        float realAmount = Float.parseFloat(Amounts.getAmounts()) * 100;
         PaymentIntentCreateParams params =
                 PaymentIntentCreateParams.builder()
                         .setAmount((long) realAmount)
@@ -546,18 +580,22 @@ public class UserServiceImpl implements UserService {
         Date date = new Date();
         Timestamp time = new Timestamp(date.getTime());
         //计算新余额
+
         float a = Float.parseFloat(amount);
+        int money = (int) (a / 100) * 10;
         float b = Float.parseFloat(balance);
-        float balances = a + b;
+        float balances = a + b + money;
         userMapper.updateBalances(String.valueOf(balances), cid);
 
         //添加充值记录
+        String receipt = verCodeGenerateUtil.generateReceipt_number();
         String userid = userMapper.getUserIdby_cid(cid);
         Transaction transaction = new Transaction();
         transaction.setPayUser(userid);
         transaction.setReceiveUser(userid);
         transaction.setAmount(String.valueOf(a));
         transaction.setDate(time);
+        transaction.setReceipt(receipt);
         userMapper.transferTo(transaction);
         return "success";
     }
@@ -676,10 +714,6 @@ public class UserServiceImpl implements UserService {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String dates = sdf.format(date);
         List<Promotion> promotion = userMapper.Get_Promotion(dates);
-        for (Promotion promotions : promotion) {
-            System.out.println(promotions.getDate());
-        }
-
         try {
             json = objectMapper.writeValueAsString(promotion);
         } catch (JsonProcessingException e) {
@@ -691,7 +725,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public String getAccessToken(String token) {
         String email = tokenUtil.getValue(token);
-        String AccessToken = tokenUtil.generateaccessToken(email);
+            String AccessToken = tokenUtil.generateAccessToken(email);
         Map<String, Object> map = new HashMap<>();
         map.put("AccessToken", AccessToken);
         try {

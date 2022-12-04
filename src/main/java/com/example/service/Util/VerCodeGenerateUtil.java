@@ -3,6 +3,8 @@ package com.example.service.Util;
 import org.springframework.stereotype.Component;
 
 import java.security.SecureRandom;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Random;
 @Component
 public class VerCodeGenerateUtil {
@@ -14,7 +16,7 @@ public class VerCodeGenerateUtil {
         //	如果是六位，就生成大小为 6 的数组
         char[] numbers = new char[6];
         for (int i = 0; i < numbers.length; i++) {
-            numbers[i] = SYMBOLS.charAt(RANDOM.nextInt(SYMBOLS.length()));
+            numbers[i] = SYMBOL.charAt(RANDOM.nextInt(SYMBOL.length()));
         }
         return new String(numbers);
     }
@@ -24,6 +26,19 @@ public class VerCodeGenerateUtil {
             numbers[i] = SYMBOL.charAt(RANDOM.nextInt(SYMBOL.length()));
         }
         return new StringBuffer(String.valueOf(numbers));
+    }
+
+    public static String generateReceipt_number() {
+        Date date = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String dates = sdf.format(date).replaceAll("[[\\s-:punct:]]", "");
+        char[] numbers = new char[6];
+        for (int i = 0; i < numbers.length; i++) {
+            numbers[i] = SYMBOL.charAt(RANDOM.nextInt(SYMBOL.length()));
+        }
+        String number = String.valueOf(numbers);
+        String Receipt = dates + number;
+        return Receipt;
     }
 }
 

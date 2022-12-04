@@ -16,7 +16,9 @@ public interface UserService {
 
     String checkUser(User user);
 
-    String testToken(String token);
+    String testRefreshToken(String token);
+
+    String testAccessToken(String token);
 
     String selectBill(String token);
 

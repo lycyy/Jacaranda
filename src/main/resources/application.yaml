@@ -12,6 +12,10 @@ spring:
     username: root
     password: ENC(/J7WYf1wEoa5/buoytiE59kSx0ltW/hP)
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+  thymeleaf:
+    prefix: classpath:/mail/
+
   servlet:
     multipart:
       max-file-size: 1024MB
@@ -20,7 +24,7 @@ spring:
   mail:
     host: smtp.office365.com
     username: ccacc111222@outlook.com
-    password: ENC(U4EjBfEJzYYMv6BPTX9PWsanzAkjpsNQN64fA6IE7rw=)#mail账号密码
+    password: ENC(U4EjBfEJzYYMv6BPTX9PWsanzAkjpsNQN64fA6IE7rw=) #mail账号密码
     protocol: smtp
     port: 587
 

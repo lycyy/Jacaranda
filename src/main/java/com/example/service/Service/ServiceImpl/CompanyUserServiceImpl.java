@@ -113,8 +113,8 @@ public class CompanyUserServiceImpl implements CompanyUserService {
         user.setPassword(password);
         int a = companyUserMapper.checkUser(user);
         String b = companyUserMapper.checkUserInfo(user.getEmail());
-        String RefreshToken = tokenUtil.generateToken(user);
-        String AccessToken = tokenUtil.generateaccessToken(user.getEmail());
+        String RefreshToken = tokenUtil.generateRefreshToken(user);
+        String AccessToken = tokenUtil.generateAccessToken(user.getEmail());
         Map<String, Object> map = new HashMap<>();
         if (a != 0) {
 
