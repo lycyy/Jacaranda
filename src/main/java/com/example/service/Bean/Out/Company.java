@@ -5,16 +5,6 @@ public class Company {
     private String C_Mobile;
     private String C_address;
 
-    private String Type;
-
-    public String getType() {
-        return Type;
-    }
-
-    public void setType(String type) {
-        Type = type;
-    }
-
     public String getC_name() {
         return C_name;
     }

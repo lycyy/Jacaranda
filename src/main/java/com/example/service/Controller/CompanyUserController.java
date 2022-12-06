@@ -127,10 +127,10 @@ public class CompanyUserController {
     }
 
     @PostMapping("/bill")
-    public Result selectBill(@RequestHeader(value = "token") String token) {
+    public Result selectBill(@RequestBody Time time,@RequestHeader(value = "token") String token) {
         logger.info("bill interface is call");
 
-        String bill = companyUserService.selectBill(token);
+        String bill = companyUserService.selectBill(time ,token);
 
         return Result.success("查询成功", bill);
     }

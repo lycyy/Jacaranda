@@ -9,6 +9,7 @@ import com.example.service.Bean.Out.Bill;
 import com.example.service.Bean.Out.Company;
 import com.example.service.Mapper.CompanyUserMapper;
 import com.example.service.Mapper.UserMapper;
+import com.example.service.Service.DingoMailService;
 import com.example.service.Service.EmailService;
 import com.example.service.Service.RedisService;
 import com.example.service.Service.UserService;
@@ -44,8 +45,13 @@ public class UserServiceImpl implements UserService {
     UserMapper userMapper;
     @Autowired
     UserInfo userInfo;
+
+    @Autowired
+    DingoMailService dingoMailService;
+
     @Autowired
     EmailService emailService;
+
     @Autowired
     RedisService redisService;
     @Autowired
@@ -141,7 +147,7 @@ public class UserServiceImpl implements UserService {
         userInfo.setCustomerId(cid);
         userInfo.setBalance("0");
         userInfo.setPictureName("R.png");
-        userMapper.updateUserInfo(userInfo.getMobile(), userInfo.getPin(), userInfo.getBalance(), userInfo.getCustomerId(), userInfo.getPictureName(), UserEmail);
+        userMapper.updateUserInfo( userInfo.getPin(), userInfo.getBalance(), userInfo.getCustomerId(), userInfo.getPictureName(), UserEmail);
 
         return 1;
     }
@@ -249,12 +255,13 @@ public class UserServiceImpl implements UserService {
 
     //账单支付
     @Override
-    public String selectBill(String token) {
+    public String selectBill(Time time , String token) {
         //从Token中获取信息
+        String times = time.getTime();
         String userEmail = tokenUtil.getValue(token);
         String userId = userMapper.getUserId(userEmail);
         //查询用户账单
-        List<Bill> billList = userMapper.selectBill(userId);
+        List<Bill> billList = userMapper.selectBill(userId,times);
         for (Bill bill : billList) {
 
             String Receiveusername = userMapper.selectUserName(bill.getReceiveUser());
@@ -271,7 +278,7 @@ public class UserServiceImpl implements UserService {
         }
 
         objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy", Locale.ENGLISH);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         objectMapper.setDateFormat(sdf);
         try {
             json = objectMapper.writeValueAsString(billList).replace("date", "dateString");
@@ -403,7 +410,14 @@ public class UserServiceImpl implements UserService {
             return "-1";
         } else {
             String username = userMapper.selectUserName(userId.getUserID());
-            return username;
+            Map<String, Object> map = new HashMap<>();
+            map.put("UserName", username);
+            try {
+                json = objectMapper.writeValueAsString(map);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+            return json;
         }
     }
 
@@ -622,7 +636,7 @@ public class UserServiceImpl implements UserService {
         String receiveEmail = tokenUtil.getValue(token);
         int num = userMapper.checkPayPswd(receiveEmail, userPin.getOldPin() + salt);
         if (num != 0) {
-            userMapper.changePayPswd(userPin.getNewPin() + salt, receiveEmail);
+            userMapper.changePin(userPin.getNewPin() + salt, receiveEmail);
             return 1;
         } else {
             return 0;
@@ -648,7 +662,7 @@ public class UserServiceImpl implements UserService {
         String text = verCodeGenerateUtil.generateVerCode();
         redisService.set(text, email);
         System.out.println(text);
-//          new EmailThread(user.getEmail(), "subject", text, emailService).start();
+        new EmailThread(user.getEmail(), "Verification code","Verify your account", text, emailService).start();
         return 1;
     }
     //验证码
@@ -678,6 +692,18 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public int setPin(PIN pin , String token) {
+        String email = tokenUtil.getValue(token);
+        String pins = pin.getPin() + salt;
+        if (userMapper.findUser(email) != 0) {
+            userMapper.changePin(pins, email);
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+    @Override
     public String getInfo(String token) {
         String receiveEmail = tokenUtil.getValue(token);
         UserInfo userInfo = userMapper.getUserInfo(receiveEmail);
@@ -685,7 +711,6 @@ public class UserServiceImpl implements UserService {
         map.put("UserID", userInfo.getUserID());
         map.put("Email", userInfo.getEmail());
         map.put("UserName", userInfo.getUsername());
-        map.put("Mobile", userInfo.getMobile());
         try {
             json = objectMapper.writeValueAsString(map);
         } catch (JsonProcessingException e) {

@@ -9,7 +9,7 @@ public class UserInfo {
     private String password;
     private String email;
     private String username;
-    private String Mobile;
+
     private String pin;
     private String Balance;
     private String CustomerId;
@@ -63,13 +63,6 @@ public class UserInfo {
         this.username = username;
     }
 
-    public String getMobile() {
-        return Mobile;
-    }
-
-    public void setMobile(String mobile) {
-        Mobile = mobile;
-    }
 
     public String getPin() {
         return pin;

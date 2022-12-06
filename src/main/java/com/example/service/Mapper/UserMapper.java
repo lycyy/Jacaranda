@@ -36,11 +36,11 @@ public interface UserMapper {
     @Select("SELECT count(*) FROM userinfo WHERE UserName = #{username}")
     int checkUsername(String username);
 
-    @Select("SELECT Mobile FROM userinfo WHERE Email = #{email} ")
+    @Select("SELECT pin FROM userinfo WHERE Email = #{email} ")
     String checkUserInfo(String email);
 
-    @Select("SELECT payUser,receiveUser,Amount,Date,Receipt FROM transactionview WHERE payUser=#{payUser} OR receiveUser=#{payUser}")
-    List<Bill> selectBill(String payUser);
+    @Select("SELECT payUser,receiveUser,Amount,Date,Receipt FROM transactionview WHERE (payUser=#{payUser} OR receiveUser=#{payUser}) AND Date > #{time}")
+    List<Bill> selectBill(String payUser ,String time);
 
     @Select("SELECT UserID FROM userinfo WHERE Email = #{Email}")
     String getUserId(String Email);
@@ -48,7 +48,7 @@ public interface UserMapper {
     @Select("SELECT UserID FROM userinfo WHERE CustomerId = #{CustomerId}")
     String getUserIdby_cid(String CustomerId);
 
-    @Select("SELECT UserID,Email,UserName,Mobile FROM userinfo WHERE Email = #{Email}")
+    @Select("SELECT UserID,Email,UserName FROM userinfo WHERE Email = #{Email}")
     UserInfo getUserInfo(String Email);
 
     @Select("SELECT picturename FROM userpicture WHERE username = #{UserName}")
@@ -69,7 +69,7 @@ public interface UserMapper {
     @Select("SELECT Balance FROM userinfo WHERE CustomerId = #{CustomerId}")
     String getBalance(String CustomerId);
 
-    @Select("SELECT C_name,C_Mobile,C_address,Type FROM companyinfo")
+    @Select("SELECT C_name,C_Mobile,C_address FROM companyinfo")
     List<Company> selectCompany();
 
     @Select("SELECT count(*) FROM userinfo WHERE UserName = #{username}")
@@ -85,7 +85,7 @@ public interface UserMapper {
     @Insert("INSERT INTO transaction_company (payUser,receiveUser,Amount,Date,Receipt) VALUES (#{payUser},#{receiveUser},#{Amount},#{Date},#{Receipt})")
     int transferTo_Company(Transaction transaction);
 
-    @Insert("INSERT INTO userinfo (UserID,password,Email,UserName,Mobile,Pin,Balance,CustomerId,PictureName) VALUES (#{UserID},md5(#{password}),#{email},#{username},#{Mobile},md5(#{pin}),#{Balance},#{CustomerId},#{PictureName})")
+    @Insert("INSERT INTO userinfo (UserID,password,Email,UserName,Pin,Balance,CustomerId,PictureName) VALUES (#{UserID},md5(#{password}),#{email},#{username},md5(#{pin}),#{Balance},#{CustomerId},#{PictureName})")
     int addUserInfo(UserInfo userInfo);
 
     @Insert("INSERT INTO userinfo (CustomerId) VALUES (#{id})")
@@ -111,8 +111,9 @@ public interface UserMapper {
     @Update("UPDATE userinfo SET Password = md5(#{newPswd}) WHERE Email = #{email}")
     void changePswd(String newPswd, String email);
 
-    @Update("UPDATE userinfo SET Pin = md5(#{Pin}) WHERE Email = #{email}")
-    void changePayPswd(String Pin, String email);
+    @Update("UPDATE userinfo SET Pin = md5(#{newPin}) WHERE Email = #{email}")
+    void changePin(String newPin, String email);
+
 
     @Update("UPDATE userinfo SET UserName = #{username} WHERE Email = #{email}")
     void changeUsername(String username, String email);
@@ -120,8 +121,8 @@ public interface UserMapper {
     @Update("UPDATE userinfo SET PictureName = #{PictureName} WHERE Email = #{email}")
     void updatePictureName(String PictureName, String email);
 
-    @Update("UPDATE userinfo SET Mobile= #{Mobile},pin= md5(#{pin}),Balance= #{Balance},CustomerId= #{CustomerId},PictureName= #{PictureName} WHERE Email = #{email}")
-    void updateUserInfo(String Mobile,String pin,String Balance,String CustomerId,String PictureName, String email);
+    @Update("UPDATE userinfo SET pin= md5(#{pin}),Balance= #{Balance},CustomerId= #{CustomerId},PictureName= #{PictureName} WHERE Email = #{email}")
+    void updateUserInfo(String pin,String Balance,String CustomerId,String PictureName, String email);
 
 
 

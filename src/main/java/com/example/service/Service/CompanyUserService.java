@@ -9,7 +9,7 @@ public interface CompanyUserService {
     String checkUser(User user);
     int info(CompanyInfo CompanyInfo , String token);
     String selectBalanceOf(String token);
-    String selectBill(String token);
+    String selectBill(Time time , String token);
     int changePswd(UserPswd userPswd, String token);
     public int setPswd(User user);
     int changeUsername(Usernames usernames, String token);

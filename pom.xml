@@ -80,6 +80,30 @@
         </dependency>
 
         <dependency>
+            <groupId>com.sendgrid</groupId>
+            <artifactId>sendgrid-java</artifactId>
+            <version>4.7.6</version>
+        </dependency>
+
+
+
+
+
+        <dependency>
+            <groupId>au.com.dingomail</groupId>
+            <artifactId>dingomailau</artifactId>
+            <version>0.2.3</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.mailgun</groupId>
+            <artifactId>mailgun-java</artifactId>
+            <version>1.0.6</version>
+        </dependency>
+
+
+        <dependency>
             <groupId>com.github.ulisesbocchio</groupId>
             <artifactId>jasypt-spring-boot-starter</artifactId>
             <version>3.0.4</version>

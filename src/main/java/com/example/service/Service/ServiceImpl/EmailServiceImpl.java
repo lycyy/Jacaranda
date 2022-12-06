@@ -14,6 +14,14 @@ import org.thymeleaf.context.Context;
 import javax.annotation.Resource;
 import javax.mail.internet.MimeMessage;
 
+import java.io.File;
+import java.util.*;
+
+import au.com.dingomail.*;
+import au.com.dingomail.api.*;
+import au.com.dingomail.auth.*;
+import au.com.dingomail.model.*;
+
 @Service
 public class EmailServiceImpl implements EmailService {
     @Resource

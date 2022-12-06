@@ -20,7 +20,7 @@ public interface UserService {
 
     String testAccessToken(String token);
 
-    String selectBill(String token);
+    String selectBill(Time time , String token);
 
     String selectBalanceOf(String token);
 
@@ -43,6 +43,8 @@ public interface UserService {
     int testcode(Code code);
 
     int setPswd(User user);
+
+    public int setPin(PIN pin , String token);
 
     String createPaymentIntent(Amount Amount, String token);
 

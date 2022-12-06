@@ -30,8 +30,8 @@ public class FileServiceImpl implements FileService {
     public boolean upload(MultipartFile file,String token) {
         String uploadPathStr = "/picture";
         String userEmail = tokenUtil.getValue(token);
-        String username = userMapper.getUserName(userEmail);
-        String fileName = username + "'s Head portrait";
+        String UserId = userMapper.getUserId(userEmail);
+        String fileName = UserId + "'s Head portrait";
         if (file == null || file.isEmpty() || fileName == null || fileName.isEmpty()) {
             return false;
         }
@@ -53,8 +53,8 @@ public class FileServiceImpl implements FileService {
     public boolean Companyupload(MultipartFile file,String token) {
         String uploadPathStr = "/picture";
         String userEmail = tokenUtil.getValue(token);
-        String username = companyUserMapper.getUsername(userEmail);
-        String fileName = username + "'s picture";
+        String UserId = companyUserMapper.getUserId(userEmail);
+        String fileName = UserId + "'s picture";
         if (file == null || file.isEmpty() || fileName == null || fileName.isEmpty()) {
             return false;
         }

@@ -46,8 +46,8 @@ public interface CompanyUserMapper {
     @Select("SELECT PictureName FROM companyinfo WHERE C_name = #{username} ")
     String getPicture(String username);
 
-    @Select("SELECT payUser,Amount,Date,Receipt FROM transaction_company WHERE receiveUser = #{receiveUser}")
-    List<CompanyBill> selectBill(String receiveUser);
+    @Select("SELECT payUser,Amount,Date,Receipt FROM transaction_company WHERE receiveUser = #{receiveUser} AND Date > #{time}")
+    List<CompanyBill> selectBill(String time ,String receiveUser);
 
     @Select("SELECT C_Mobile FROM companyinfo WHERE Email = #{email}")
     String checkUserInfo(String email);

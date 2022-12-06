@@ -2,20 +2,26 @@ jasypt:
   encryptor:
     algorithm: PBEWithMD5AndDES
 
+
+
 spring:
   datasource:
-#    url: jdbc:mysql://lycyy.cc:3306/paySystem?characterEncoding=utf8
-#    username: admin
-#    password: ENC(i6G1WjmEIMwOIg2pBo2haSufVyBES1RbO5bMpyQpBIw=)
+    url: jdbc:mysql://lycyy.cc:3306/paySystem?characterEncoding=utf8
+    username: admin
+    password: ENC(i6G1WjmEIMwOIg2pBo2haSufVyBES1RbO5bMpyQpBIw=)
 
-    url: jdbc:mysql://localhost:3306/paySystem?characterEncoding=utf8
-    username: root
-    password: ENC(/J7WYf1wEoa5/buoytiE59kSx0ltW/hP)
+#    url: jdbc:mysql://localhost:3306/paySystem?characterEncoding=utf8
+#    username: root
+#    password: ENC(/J7WYf1wEoa5/buoytiE59kSx0ltW/hP)
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+
 
   thymeleaf:
     prefix: classpath:/mail/
-
+  twilio:
+    apikey: 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  #sendgrid中注册账号是获取的apikey
+    fromemail: lyc945009953@gmail.com #来源邮箱
   servlet:
     multipart:
       max-file-size: 1024MB

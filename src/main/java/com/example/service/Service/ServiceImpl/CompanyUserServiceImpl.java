@@ -161,15 +161,16 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 
     //账单支付
     @Override
-    public String selectBill(String token) {
+    public String selectBill(Time time ,String token) {
         //从Token中获取信息
+        String times = time.getTime();
         String userEmail = tokenUtil.getValue(token);
         String userId = companyUserMapper.getUserId(userEmail);
         //查询用户账单
-        List<CompanyBill> billList = companyUserMapper.selectBill(userId);
+        List<CompanyBill> billList = companyUserMapper.selectBill(times , userId);
 
         objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy", Locale.ENGLISH);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         objectMapper.setDateFormat(sdf);
 
         try {

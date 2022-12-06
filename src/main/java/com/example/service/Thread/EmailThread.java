@@ -1,11 +1,14 @@
 package com.example.service.Thread;
 
+import com.example.service.Service.DingoMailService;
 import com.example.service.Service.EmailService;
-
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 public class EmailThread extends Thread {
 
     private EmailService emailService;
+    private DingoMailService dingoMailService;
     private String email;
     private String subject;
     private String random;
@@ -25,6 +28,7 @@ public class EmailThread extends Thread {
     public void run() {
 //        emailService.sendMail(email, subject, random);
         emailService.sendHtmlMail(email, subject,operation, random);
+//        dingoMailService.CreateEmail(email,subject,operation,random);
 
     }
 }

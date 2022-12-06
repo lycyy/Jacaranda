@@ -3,6 +3,10 @@ package com.example.service.Controller;
 import com.example.service.Bean.*;
 import com.example.service.Bean.In.*;
 import com.example.service.Mapper.UserMapper;
+import com.example.service.Service.EmailService;
+import com.example.service.Service.ServiceImpl.DingoMailServiceImpl;
+import com.example.service.Service.ServiceImpl.MailGunServiceImpl;
+import com.example.service.Service.ServiceImpl.SenfgirdServiceImpl;
 import com.example.service.Service.ServiceImpl.WebSocketService;
 import com.example.service.Service.UserService;
 import com.example.service.Util.ConfigurationUtil;
@@ -13,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.Date;
 
 @RestController
@@ -20,6 +25,14 @@ import java.util.Date;
 public class UserController {
     @Autowired
     UserService userService;
+    @Autowired
+    DingoMailServiceImpl dingoMail;
+    @Autowired
+    SenfgirdServiceImpl senfgirdService;
+    @Autowired
+    MailGunServiceImpl mailGunService;
+    @Autowired
+    EmailService emailService;
     @Autowired
     TokenUtil tokenUtil;
     @Autowired
@@ -147,10 +160,10 @@ public class UserController {
 
     //账单支付
     @PostMapping("/bill")
-    public Result selectBill(@RequestHeader(value = "token") String token) {
+    public Result selectBill(@RequestBody Time time , @RequestHeader(value = "token") String token) {
         logger.info("bill interface is call");
 
-        String bill = userService.selectBill(token);
+        String bill = userService.selectBill(time , token);
 
         return Result.success("查询成功", bill);
     }
@@ -225,7 +238,7 @@ public class UserController {
         } else if (a.equals("-1")) {
             result = result.fail("转账用户与本用户相同");
         } else {
-            result = result.success("用户存在", "username:" + a);
+            result = result.success("用户存在",  a);
         }
         return result;
     }
@@ -333,6 +346,19 @@ public class UserController {
         }
         return result;
     }
+
+    @PostMapping("/setPin")
+    public Result setPswd(@RequestBody PIN pin, @RequestHeader(value = "token") String token) {
+        logger.info("setPin interface is call");
+        int num = userService.setPin(pin,token);
+        Result result = new Result();
+        if (num == 1) {
+            result = result.success("修改成功");
+        } else {
+            result = result.success("修改失败");
+        }
+        return result;
+    }
     @PostMapping("/getAccesstoken")
     public Result setPswd(@RequestHeader(value = "token") String token) {
         logger.info("getAccesstoken interface is call");
@@ -346,6 +372,10 @@ public class UserController {
     public Result Get_Promotion(@RequestHeader(value = "token") String token){
         String json = userService.Get_Promotion(token);
         return Result.success("查询成功",json);
+    }
+    @PostMapping("/dingomail")
+    public void dingomail() {
+        emailService.sendHtmlMail("945009953@qq.com","code","22","123123");
     }
     @PostMapping("/get")
     public Result get(){
