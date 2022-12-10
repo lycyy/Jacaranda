@@ -16,19 +16,19 @@ public class EmailThread extends Thread {
     private String operation;
 
 
-    public EmailThread(String email, String subject, String operation , String random,EmailService emailService) {
+    public EmailThread(String email, String subject, String operation , String random,DingoMailService dingoMailService) {
         this.email = email;
         this.subject = subject;
         this.random = random;
         this.operation = operation;
-        this.emailService = emailService;
+        this.dingoMailService = dingoMailService;
     }
 
     @Override
     public void run() {
 //        emailService.sendMail(email, subject, random);
-        emailService.sendHtmlMail(email, subject,operation, random);
-//        dingoMailService.CreateEmail(email,subject,operation,random);
+//        emailService.sendHtmlMail(email, subject,operation, random);
+        dingoMailService.CreateEmail(email,subject,operation,random);
 
     }
 }

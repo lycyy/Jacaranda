@@ -4,6 +4,7 @@ import com.example.service.Bean.In.*;
 import com.example.service.Bean.Out.Balance;
 import com.example.service.Bean.Out.Bill;
 import com.example.service.Bean.Out.CompanyBill;
+import com.example.service.Bean.Out.Refund;
 import com.example.service.Mapper.CompanyUserMapper;
 import com.example.service.Mapper.UserMapper;
 import com.example.service.Service.CompanyUserService;
@@ -21,6 +22,7 @@ import com.stripe.model.Customer;
 import com.zaxxer.hikari.pool.HikariProxyCallableStatement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -41,6 +43,10 @@ public class CompanyUserServiceImpl implements CompanyUserService {
     VerCodeGenerateUtil verCodeGenerateUtil;
     @Autowired
     WebSocketService webSocketService;
+    @Autowired
+    UserService userService;
+    @Autowired
+    UserMapper userMapper;
     @Autowired
     CompanyInfo companyInfo;
 
@@ -102,7 +108,7 @@ public class CompanyUserServiceImpl implements CompanyUserService {
         companyInfo.setBalance("0");
         String type = companyInfo.getType();
 
-        companyUserMapper.updateUserInfo(companyInfo.getC_Mobile(),companyInfo.getC_address(),companyInfo.getBalance(),companyInfo.getPicture(), type,UserEmail);
+        companyUserMapper.updateUserInfo(companyInfo.getC_Mobile(), companyInfo.getC_address(), companyInfo.getBalance(), companyInfo.getPicture(), type, UserEmail);
         return 1;
     }
 
@@ -161,20 +167,21 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 
     //账单支付
     @Override
-    public String selectBill(Time time ,String token) {
+    public String selectBill(Time time, String token) {
         //从Token中获取信息
         String times = time.getTime();
         String userEmail = tokenUtil.getValue(token);
         String userId = companyUserMapper.getUserId(userEmail);
         //查询用户账单
-        List<CompanyBill> billList = companyUserMapper.selectBill(times , userId);
+        List<CompanyBill> billList = companyUserMapper.selectBill(times, userId);
 
         objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         objectMapper.setDateFormat(sdf);
 
         try {
-            json = objectMapper.writeValueAsString(billList).replace("date", "dateString");;
+            json = objectMapper.writeValueAsString(billList).replace("date", "dateString");
+            ;
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
@@ -229,8 +236,46 @@ public class CompanyUserServiceImpl implements CompanyUserService {
         int a = companyUserMapper.Publish_Promotion(promotion);
         if (a == 1) {
             return 1;
-        }else {
+        } else {
             return 0;
         }
+    }
+
+    @Override
+    public int refund(Receipt receipt, String token) {
+        String userEmail = tokenUtil.getValue(token);
+        String receiveUser = companyUserMapper.getUserId(userEmail);
+        String receipts = receipt.getReceipt();
+        Refund refund = companyUserMapper.selectReceipt(receipts);
+        int num = transferTo(receiveUser, refund.getPayUser(), refund.getAmount());
+        if (num == 1) {
+            companyUserMapper.deletebill(receipts);
+        }
+        return num;
+
+    }
+
+    @Override
+    public int transferTo(String payUser, String receiveUser, String Amount) {
+
+        Date date = new Date();
+
+        float amount = Float.parseFloat(Amount);
+        float payBalance = Float.parseFloat(companyUserMapper.selectBalance(payUser));
+
+        float receiveBalance = Float.parseFloat(userMapper.selectBalance(receiveUser));
+
+        if (payBalance < amount) {
+            return 0;//余额不足
+        }
+        float payBalances = payBalance - amount;
+        companyUserMapper.updateCompanyBalance(String.valueOf(payBalances), payUser);
+        float receiveBalances = receiveBalance + amount;
+        userMapper.updateBalance(String.valueOf(receiveBalances), receiveUser);
+
+        //存入数据库
+
+        return 1;//成功
+
     }
 }

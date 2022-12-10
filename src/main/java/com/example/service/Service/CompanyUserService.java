@@ -15,4 +15,6 @@ public interface CompanyUserService {
     int changeUsername(Usernames usernames, String token);
     int verifyUser(Code code);
     int Publish_Promotion(Promotion promotion);
+    int refund(Receipt receipt,String token);
+    int transferTo(String payUser, String receiveUser, String Amount);
 }

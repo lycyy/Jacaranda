@@ -33,25 +33,42 @@ public interface UserMapper {
     @Select("SELECT count(*) FROM userinfo WHERE UserID = #{UserID} ")
     int findUserID(String UserID);
 
+    @Select("SELECT count(*) FROM companyinfo WHERE CompanyID = #{CompanyID} ")
+    int findCompanyID(String CompanyID);
+
     @Select("SELECT count(*) FROM userinfo WHERE UserName = #{username}")
     int checkUsername(String username);
 
     @Select("SELECT pin FROM userinfo WHERE Email = #{email} ")
     String checkUserInfo(String email);
 
-    @Select("SELECT payUser,receiveUser,Amount,Date,Receipt FROM transactionview WHERE (payUser=#{payUser} OR receiveUser=#{payUser}) AND Date > #{time}")
+    @Select("SELECT payUser,receiveUser,Amount,Date,Receipt \n"+
+            "FROM transactionview WHERE (payUser=#{payUser} OR receiveUser=#{payUser}) AND Date > #{time}")
     List<Bill> selectBill(String payUser ,String time);
+
+    @Select("SELECT payUser,receiveUser,Amount,Date,Receipt \n" +
+            "FROM paySystem.transactionview \n" +
+            "WHERE (payUser=#{payUser} OR receiveUser=#{payUser}) \n" +
+            "AND Date < #{time} \n" +
+            "ORDER BY Date DESC\n" +
+            "limit 10")
+    List<Bill> selectBill_before(String payUser ,String time);
 
     @Select("SELECT UserID FROM userinfo WHERE Email = #{Email}")
     String getUserId(String Email);
 
+    @Select("SELECT CompanyID FROM companyinfo WHERE Email = #{Email}")
+    String getCUserId(String Email);
+
+
+
     @Select("SELECT UserID FROM userinfo WHERE CustomerId = #{CustomerId}")
     String getUserIdby_cid(String CustomerId);
 
-    @Select("SELECT UserID,Email,UserName FROM userinfo WHERE Email = #{Email}")
+    @Select("SELECT UserID,Email,UserName,Image FROM userinfo WHERE Email = #{Email}")
     UserInfo getUserInfo(String Email);
 
-    @Select("SELECT picturename FROM userpicture WHERE username = #{UserName}")
+    @Select("SELECT Image FROM userpicture WHERE username = #{UserName}")
     String getPictureName(String UserName);
 
     @Select("SELECT CustomerId FROM userinfo WHERE Email = #{Email}")
@@ -60,8 +77,14 @@ public interface UserMapper {
     @Select("SELECT Balance FROM userinfo WHERE UserID = #{UserID}")
     String selectBalance(String UserID);
 
+    @Select("SELECT Balance FROM companyinfo WHERE CompanyID = #{CompanyID}")
+    String selectCompanyBalance(String UserID);
+
     @Select("SELECT name FROM username WHERE ID = #{UserID}")
     String selectUserName(String UserID);
+
+    @Select("SELECT Image FROM userpicture WHERE username = #{username}")
+    String selectUserImage(String UserID);
 
     @Select("SELECT UserName FROM userinfo WHERE Email = #{Email}")
     String getUserName(String Email);
@@ -85,7 +108,7 @@ public interface UserMapper {
     @Insert("INSERT INTO transaction_company (payUser,receiveUser,Amount,Date,Receipt) VALUES (#{payUser},#{receiveUser},#{Amount},#{Date},#{Receipt})")
     int transferTo_Company(Transaction transaction);
 
-    @Insert("INSERT INTO userinfo (UserID,password,Email,UserName,Pin,Balance,CustomerId,PictureName) VALUES (#{UserID},md5(#{password}),#{email},#{username},md5(#{pin}),#{Balance},#{CustomerId},#{PictureName})")
+    @Insert("INSERT INTO userinfo (UserID,password,Email,UserName,Pin,Balance,CustomerId,Image) VALUES (#{UserID},md5(#{password}),#{email},#{username},md5(#{pin}),#{Balance},#{CustomerId},#{Image})")
     int addUserInfo(UserInfo userInfo);
 
     @Insert("INSERT INTO userinfo (CustomerId) VALUES (#{id})")
@@ -104,6 +127,8 @@ public interface UserMapper {
     //更新
     @Update("UPDATE userinfo SET Balance=#{balance} WHERE UserID = #{UserID}")
     void updateBalance(String balance,String UserID);
+    @Update("UPDATE companyinfo SET Balance=#{balance} WHERE CompanyID = #{ComapnyID}")
+    void updateCompanyBalance(String balance,String ComapnyID);
 
     @Update("UPDATE userinfo SET Balance=#{balance} WHERE CustomerId = #{CustomerId}")
     void updateBalances(String balance,String CustomerId);
@@ -118,11 +143,11 @@ public interface UserMapper {
     @Update("UPDATE userinfo SET UserName = #{username} WHERE Email = #{email}")
     void changeUsername(String username, String email);
 
-    @Update("UPDATE userinfo SET PictureName = #{PictureName} WHERE Email = #{email}")
-    void updatePictureName(String PictureName, String email);
+    @Update("UPDATE userinfo SET Image = #{Image} WHERE Email = #{email}")
+    void updateImage(String Image, String email);
 
-    @Update("UPDATE userinfo SET pin= md5(#{pin}),Balance= #{Balance},CustomerId= #{CustomerId},PictureName= #{PictureName} WHERE Email = #{email}")
-    void updateUserInfo(String pin,String Balance,String CustomerId,String PictureName, String email);
+    @Update("UPDATE userinfo SET pin= md5(#{pin}),Balance= #{Balance},CustomerId= #{CustomerId} WHERE Email = #{email}")
+    void updateUserInfo(String pin,String Balance,String CustomerId, String email);
 
 
 

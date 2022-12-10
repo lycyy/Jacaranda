@@ -40,7 +40,7 @@ public class FileServiceImpl implements FileService {
             if (!uploadPath.toFile().exists())
                 uploadPath.toFile().mkdirs();
             Files.copy(inputStream, Paths.get(uploadPathStr).resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
-            userMapper.updatePictureName(fileName,userEmail);
+            userMapper.updateImage(fileName,userEmail);
             System.out.println("upload file , filename is "+fileName);
             return true;
         }catch (IOException e) {

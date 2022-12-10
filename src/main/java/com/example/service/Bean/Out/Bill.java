@@ -6,13 +6,32 @@ public class Bill {
     private String type;
 
     private String payUser;
-
+    private String payColor;
     private String payUsername;
     private String receiveUser;
+    private String receiveColor;
     private String receiveUsername;
     private String Amount;
     private Timestamp Date;
     private String Receipt;
+
+
+
+    public String getPayColor() {
+        return payColor;
+    }
+
+    public void setPayColor(String payColor) {
+        this.payColor = payColor;
+    }
+
+    public String getReceiveColor() {
+        return receiveColor;
+    }
+
+    public void setReceiveColor(String receiveColor) {
+        this.receiveColor = receiveColor;
+    }
 
     public String getReceipt() {
         return Receipt;

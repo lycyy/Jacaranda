@@ -13,7 +13,16 @@ public class UserInfo {
     private String pin;
     private String Balance;
     private String CustomerId;
-    private String PictureName;
+
+    private String Image;
+
+    public String getImage() {
+        return Image;
+    }
+
+    public void setImage(String image) {
+        Image = image;
+    }
 
     public String getPassword() {
         return password;
@@ -72,11 +81,4 @@ public class UserInfo {
         this.pin = pin;
     }
 
-    public String getPictureName() {
-        return PictureName;
-    }
-
-    public void setPictureName(String pictureName) {
-        PictureName = pictureName;
-    }
 }

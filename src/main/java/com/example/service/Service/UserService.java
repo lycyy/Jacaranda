@@ -22,13 +22,20 @@ public interface UserService {
 
     String selectBill(Time time , String token);
 
+    String selectBill_before(Time time, String token);
+
     String selectBalanceOf(String token);
 
     String addBalance(String amount, String cid);
 
     int Verify(UserID userId, String token);
 
-    int transferTo(UserID userId, String token);
+
+    String create_transferTo(UserID userId, String token);
+
+    int transferTo(String payUser,String receiveUser , String Amount);
+
+    int transferToCompany(String payUser,String receiveUser , String Amount);
 
     String checkId(UserID userId, String token);
 
@@ -36,15 +43,18 @@ public interface UserService {
 
     int changePayPswd(UserPin userPin, String token);
 
-    int checkPayPswd(String PayPswd, String token);
+    int transferto_start(PIN pin, String token);
+
+    int transfertoCompany_start(PIN pin, String token);
 
     int sendEmail(User user);
 
-    int testcode(Code code);
+    int testPswdcode(Code code);
+    int testPincode(Code code , String token);
 
     int setPswd(User user);
 
-    public int setPin(PIN pin , String token);
+     int setPin(PIN pin , String token);
 
     String createPaymentIntent(Amount Amount, String token);
 
@@ -54,12 +64,12 @@ public interface UserService {
 
     String getInfo(String token);
 
-    int transfer(UserID userId, String token);
+
 
     String selectCompany();
 
     String getAccessToken(String token);
 
     String Get_Promotion(String token);
-
+    int changeColor(Images image , String token);
 }

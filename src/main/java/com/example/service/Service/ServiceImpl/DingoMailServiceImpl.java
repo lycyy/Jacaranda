@@ -23,10 +23,10 @@ public class DingoMailServiceImpl implements DingoMailService {
         Authentication auth;
 
         auth = apiClient.getAuthentication("Key Secret");
-        ((ApiKeyAuth) auth).setApiKey("YQHTTBZFKO2SETURJHX2CUMHCC8C3UTZRAPWPDVYB5YWS");
+        ((ApiKeyAuth) auth).setApiKey("UIVECUPUKP6QVTRAWAYYWZ3FX3U52JRLQMXPATDBUPBGJ");
 
         auth = apiClient.getAuthentication("Key ID");
-        ((ApiKeyAuth) auth).setApiKey("638dd8ac19e883676f3456c4");
+        ((ApiKeyAuth) auth).setApiKey("63916283c5433876597d6482");
     }
 
     public void CreateEmail(String to, String subject, String operation, String verificationCode) {
@@ -38,11 +38,12 @@ public class DingoMailServiceImpl implements DingoMailService {
         NewEmail newEmail = new NewEmail();
         newEmail.setHtml(process);
         newEmail.setRecipient(to);
-        newEmail.setSenderEmail("Jacaranda@gmail.com");
+        newEmail.setSenderEmail("Jacaranda_service@jacarandabne.com");
         newEmail.setSenderName("Jacaranda");
         newEmail.setSubject(subject);
         newEmail.setText("");
-        String keyid = "638dd8ac19e883676f3456c4";  // The ID of the API Key being used
+        newEmail.setUnsubLink(false);
+        String keyid = "63916283c5433876597d6482";  // The ID of the API Key being used
 
         try {
             EmailApi emailApi = new EmailApi();

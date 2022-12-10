@@ -23,7 +23,12 @@ public class RedisServiceImpl implements RedisService {
     public void set(String key, String value) {
         ValueOperations<String, String> ops = stringRedisTemplate.opsForValue();
         ops.set(key, value,60*1, TimeUnit.SECONDS);
+    }
 
+    @Override
+    public void setfb(String key, String value) {
+        ValueOperations<String, String> ops = stringRedisTemplate.opsForValue();
+        ops.set(key, value,90, TimeUnit.SECONDS);
     }
 
     @Override

@@ -79,6 +79,8 @@
             <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
 
+
+
         <dependency>
             <groupId>com.sendgrid</groupId>
             <artifactId>sendgrid-java</artifactId>
@@ -92,7 +94,7 @@
         <dependency>
             <groupId>au.com.dingomail</groupId>
             <artifactId>dingomailau</artifactId>
-            <version>0.2.3</version>
+            <version>0.2.5</version>
             <scope>compile</scope>
         </dependency>
 

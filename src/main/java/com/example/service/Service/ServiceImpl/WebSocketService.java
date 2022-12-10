@@ -85,6 +85,7 @@ public class WebSocketService {
         for (WebSocketService server : sWebSocketServers) {
             if (server.mVmcNo == vmcNo) {
                 success = server.sendMessage(message);
+                System.out.println("success");
                 break;
             }
         }

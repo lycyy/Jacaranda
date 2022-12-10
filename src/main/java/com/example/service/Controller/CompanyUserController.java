@@ -147,4 +147,17 @@ public class CompanyUserController {
         }
         return result;
     }
+
+    @PostMapping("/Refund")
+    public Result Refund(@RequestBody Receipt receipt ,@RequestHeader(value = "token") String token){
+        logger.info("Refund interface is call");
+        Result result = new Result();
+        int num = companyUserService.refund(receipt , token);
+        if (num == 0) {
+            result = result.fail("余额不足");
+        } else {
+            result = result.success("退款成功");
+        }
+        return result;
+    }
 }

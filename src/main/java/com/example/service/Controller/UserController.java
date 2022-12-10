@@ -2,11 +2,10 @@ package com.example.service.Controller;
 
 import com.example.service.Bean.*;
 import com.example.service.Bean.In.*;
+import com.example.service.Enum.Color;
 import com.example.service.Mapper.UserMapper;
 import com.example.service.Service.EmailService;
 import com.example.service.Service.ServiceImpl.DingoMailServiceImpl;
-import com.example.service.Service.ServiceImpl.MailGunServiceImpl;
-import com.example.service.Service.ServiceImpl.SenfgirdServiceImpl;
 import com.example.service.Service.ServiceImpl.WebSocketService;
 import com.example.service.Service.UserService;
 import com.example.service.Util.ConfigurationUtil;
@@ -17,8 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.util.Date;
+import java.util.Random;
 
 @RestController
 @ResponseBody
@@ -27,10 +26,6 @@ public class UserController {
     UserService userService;
     @Autowired
     DingoMailServiceImpl dingoMail;
-    @Autowired
-    SenfgirdServiceImpl senfgirdService;
-    @Autowired
-    MailGunServiceImpl mailGunService;
     @Autowired
     EmailService emailService;
     @Autowired
@@ -64,17 +59,6 @@ public class UserController {
         }
     }
 
-    @PostMapping("/checkusername")
-    public Result checkusername(@RequestBody User user){
-        logger.info("checkusername interface is call");
-        String username = user.getUsername();
-        int num = userService.username(user);
-        if (num == 1) {
-            return Result.success("用户名可以使用");
-        }else {
-            return Result.fail("用户名已被注册");
-        }
-    }
 
     @PostMapping("/code")
     public Result code(@RequestBody Code code) {
@@ -114,10 +98,23 @@ public class UserController {
         }
     }
 
-    @PostMapping("/testcode")
-    public Result testcode(@RequestBody Code code) {
-        logger.info("testcode interface is call");
-        int num = userService.testcode(code);
+    @PostMapping("/verify_pswdcode")
+    public Result testpswdcode(@RequestBody Code code) {
+        logger.info("verify_pswdcode interface is call");
+        int num = userService.testPswdcode(code);
+        Result result = new Result();
+        if (num == 1) {
+            result = result.success("验证成功");
+        } else {
+            result = result.fail("验证失败");
+        }
+        return result;
+    }
+
+    @PostMapping("/verify_pincode")
+    public Result testpincode(@RequestBody Code code , @RequestHeader(value = "token") String token) {
+        logger.info("verify_pincode interface is call");
+        int num = userService.testPincode(code,token);
         Result result = new Result();
         if (num == 1) {
             result = result.success("验证成功");
@@ -168,6 +165,15 @@ public class UserController {
         return Result.success("查询成功", bill);
     }
 
+    @PostMapping("/bill_before")
+    public Result selectBill_before(@RequestBody Time time , @RequestHeader(value = "token") String token) {
+        logger.info("bill_before interface is call");
+
+        String bill = userService.selectBill_before(time , token);
+
+        return Result.success("查询成功", bill);
+    }
+
     @PostMapping("/balanceOf")
     public Result selectbalanceOf(@RequestHeader(value = "token") String token) {
         logger.info("balanceOf interface is call");
@@ -183,24 +189,41 @@ public class UserController {
         Result result = new Result();
         int num = userService.Verify(userID, token);
         if (num == 1) {
-            result = result.success("支付成功");
-        } else if (num == 0) {
-            result = result.fail("余额不足");
-        } else if (num == -1) {
-            result = result.fail("连接超时");
+            result = result.success("等待输入密码");
         }
         return result;
     }
 
-    @PostMapping("/checkPin")
+    @PostMapping("/checkTransferTo")
     public Result checkPayPswd(@RequestBody PIN pin, @RequestHeader(value = "token") String token) {
-        logger.info("checkPin interface is call");
+        logger.info("checkTransferTo interface is call");
         Result result = new Result();
-        int num = userService.checkPayPswd(pin.getPin(), token);
+        int num = userService.transferto_start(pin, token);
         if (num == 1) {
-            result = result.success("密码正确");
-        } else {
+            result = result.success("支付成功");
+        } else if (num == 0) {
+            result = result.fail("余额不足");
+        } else if (num == -1) {
             result = result.fail("密码错误");
+        }else {
+            result = result.fail("网络错误");
+        }
+        return result;
+    }
+
+    @PostMapping("/checkTransferTo_Company")
+    public Result checkPayPswdC(@RequestBody PIN pin, @RequestHeader(value = "token") String token) {
+        logger.info("checkTransferTo interface is call");
+        Result result = new Result();
+        int num = userService.transfertoCompany_start(pin, token);
+        if (num == 1) {
+            result = result.success("支付成功");
+        } else if (num == 0) {
+            result = result.fail("余额不足");
+        } else if (num == -1) {
+            result = result.fail("密码错误");
+        }else {
+            result = result.fail("网络错误");
         }
         return result;
     }
@@ -217,14 +240,8 @@ public class UserController {
     public Result transferTo(@RequestBody UserID userID, @RequestHeader(value = "token") String token) {
         logger.info("transferTo interface is call");
         Result result = new Result();
-        int num = userService.transferTo(userID, token);
-        if (num == 1) {
-            result = result.success("支付成功");
-        } else if (num == 0) {
-            result = result.fail("余额不足");
-        } else if (num == -1) {
-            result = result.fail("用户错误");
-        }
+        String text = userService.create_transferTo(userID, token);
+            result = result.success("请求成功" , text );
         return result;
     }
 
@@ -340,9 +357,9 @@ public class UserController {
         int num = userService.setPswd(user);
         Result result = new Result();
         if (num == 1) {
-            result = result.success("修改成功");
+            result = result.success("发送验证码");
         } else {
-            result = result.success("修改失败");
+            result = result.success("发送失败");
         }
         return result;
     }
@@ -353,9 +370,9 @@ public class UserController {
         int num = userService.setPin(pin,token);
         Result result = new Result();
         if (num == 1) {
-            result = result.success("修改成功");
+            result = result.success("发送验证码");
         } else {
-            result = result.success("修改失败");
+            result = result.success("发送失败");
         }
         return result;
     }
@@ -375,11 +392,25 @@ public class UserController {
     }
     @PostMapping("/dingomail")
     public void dingomail() {
-        emailService.sendHtmlMail("945009953@qq.com","code","22","123123");
+        int pick = new Random().nextInt(Color.values().length);
+        String color = Color.values()[pick].getValue();
+        System.out.println(color);
     }
     @PostMapping("/get")
     public Result get(){
         return Result.success(configuration.getRSA_seed()+"||"+configuration.getPassword_salt()+"||"+configuration.getStripe_apiKey()+"||"+configuration.getToken_key());
+    }
+
+    @PostMapping("/updateImage")
+    public Result updateImage(@RequestBody Images image , @RequestHeader(value = "token") String token ){
+        int num = userService.changeColor(image,token);
+        Result result = new Result();
+        if (num == 1) {
+            result = result.success("更新成功");
+        }else {
+            result = result.fail("更新失败");
+        }
+        return result;
     }
 
 
