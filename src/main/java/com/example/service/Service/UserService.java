@@ -28,9 +28,6 @@ public interface UserService {
 
     String addBalance(String amount, String cid);
 
-    int Verify(UserID userId, String token);
-
-
     String create_transferTo(UserID userId, String token);
 
     int transferTo(String payUser,String receiveUser , String Amount);

@@ -26,28 +26,7 @@ public class FileServiceImpl implements FileService {
     CompanyUserMapper companyUserMapper;
     @Autowired
     public TokenUtil tokenUtil;
-    @Override
-    public boolean upload(MultipartFile file,String token) {
-        String uploadPathStr = "/picture";
-        String userEmail = tokenUtil.getValue(token);
-        String UserId = userMapper.getUserId(userEmail);
-        String fileName = UserId + "'s Head portrait";
-        if (file == null || file.isEmpty() || fileName == null || fileName.isEmpty()) {
-            return false;
-        }
-        try(InputStream inputStream = file.getInputStream()) {
-            Path uploadPath = Paths.get(uploadPathStr);
-            if (!uploadPath.toFile().exists())
-                uploadPath.toFile().mkdirs();
-            Files.copy(inputStream, Paths.get(uploadPathStr).resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
-            userMapper.updateImage(fileName,userEmail);
-            System.out.println("upload file , filename is "+fileName);
-            return true;
-        }catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
+
 
     @Override
     public boolean Companyupload(MultipartFile file,String token) {
@@ -94,27 +73,10 @@ public class FileServiceImpl implements FileService {
         }
     }
 
-    @Override
-    public ResponseEntity<FileSystemResource> download(String UserName) {
-        String uploadPathStr = "/picture";
-        String files = userMapper.getPictureName(UserName);
-        if (files == null || files.isEmpty()) {
-            return null;
-        }
-        File file = Paths.get(uploadPathStr).resolve(files).toFile();
-        if (file.exists() && file.canRead()) {
-            return ResponseEntity.ok()
-                    .contentType(file.getName().contains(".jpg") ? MediaType.IMAGE_JPEG:MediaType.IMAGE_PNG)
-                    .body(new FileSystemResource(file));
-        }else {
-            return null;
-        }
-    }
 
     @Override
-    public ResponseEntity<FileSystemResource> downloadCompany(String UserName) {
+    public ResponseEntity<FileSystemResource> downloadCompany(String files) {
         String uploadPathStr = "/picture";
-        String files =companyUserMapper.getPicture(UserName);
         if (files == null || files.isEmpty()) {
             return null;
         }

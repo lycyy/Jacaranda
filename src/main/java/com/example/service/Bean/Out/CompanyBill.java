@@ -4,9 +4,27 @@ import java.sql.Timestamp;
 
 public class CompanyBill {
     private String payUser;
+    private String payUsername;
+    private String payColor;
     private String Amount;
     private Timestamp Date;
     private String Receipt;
+
+    public String getPayUsername() {
+        return payUsername;
+    }
+
+    public void setPayUsername(String payUsername) {
+        this.payUsername = payUsername;
+    }
+
+    public String getPayColor() {
+        return payColor;
+    }
+
+    public void setPayColor(String payColor) {
+        this.payColor = payColor;
+    }
 
     public String getReceipt() {
         return Receipt;

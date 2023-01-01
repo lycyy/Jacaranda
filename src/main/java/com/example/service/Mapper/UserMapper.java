@@ -49,7 +49,7 @@ public interface UserMapper {
     @Select("SELECT payUser,receiveUser,Amount,Date,Receipt \n" +
             "FROM paySystem.transactionview \n" +
             "WHERE (payUser=#{payUser} OR receiveUser=#{payUser}) \n" +
-            "AND Date < #{time} \n" +
+            "AND Date <= #{time} \n" +
             "ORDER BY Date DESC\n" +
             "limit 10")
     List<Bill> selectBill_before(String payUser ,String time);
@@ -65,7 +65,7 @@ public interface UserMapper {
     @Select("SELECT UserID FROM userinfo WHERE CustomerId = #{CustomerId}")
     String getUserIdby_cid(String CustomerId);
 
-    @Select("SELECT UserID,Email,UserName,Image FROM userinfo WHERE Email = #{Email}")
+    @Select("SELECT UserID,UserName,Image FROM userinfo WHERE Email = #{Email}")
     UserInfo getUserInfo(String Email);
 
     @Select("SELECT Image FROM userpicture WHERE username = #{UserName}")

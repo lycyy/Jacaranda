@@ -19,15 +19,6 @@ public class CompanyUserController {
     CompanyUserService companyUserService;
     Logger logger = LoggerFactory.getLogger(getClass());
 
-    @PostMapping("/authorizationCode")
-    public Result authorization(@RequestBody Verify verify) {
-        logger.info("Verify interface is call");
-        if (verify.getVerify().equals("WD5AHI")) {
-            return Result.success("验证成功");
-        } else {
-            return Result.fail("验证失败");
-        }
-    }
 
     @PostMapping("/register")
     public Result register(@RequestBody User user) {
@@ -40,10 +31,21 @@ public class CompanyUserController {
         }
     }
 
+    @PostMapping("/collection")
+    public Result transfer(@RequestBody UserID userID, @RequestHeader(value = "token") String token) {
+        logger.info("transfer interface is call");
+        Result result = new Result();
+        int num = companyUserService.createCollection(userID, token);
+        if (num == 1) {
+            result = result.success("等待输入密码");
+        }
+        return result;
+    }
+
     @PostMapping("/code")
-    public Result code(@RequestBody Code code) {
+    public Result code(@RequestBody CompanyCode companyCode) {
         logger.info("code interface is call");
-        int num = companyUserService.verifyUser(code);
+        int num = companyUserService.verifyUser(companyCode);
         if (num == 1) {
             return Result.success("验证成功");
         } else {
@@ -99,6 +101,33 @@ public class CompanyUserController {
 
     }
 
+    @PostMapping("/verify_pswdcode")
+    public Result testpswdcode(@RequestBody Code code) {
+        logger.info("verify_pswdcode interface is call");
+        int num = companyUserService.testPswdcode(code);
+        Result result = new Result();
+        if (num == 1) {
+            result = result.success("验证成功");
+        } else {
+            result = result.fail("验证失败");
+        }
+        return result;
+    }
+
+    @PostMapping("/setPswd")
+    public Result setPswd(@RequestBody User user) {
+        logger.info("setPswd interface is call");
+        int num = companyUserService.setPswd(user);
+        Result result = new Result();
+        if (num == 1) {
+            result = result.success("发送验证码");
+        } else {
+            result = result.success("发送失败");
+        }
+        return result;
+    }
+
+
     @PostMapping("/changeUsername")
     public Result changeUsername(@RequestBody Usernames usernames, @RequestHeader(value = "token") String token) {
         logger.info("changeUsername interface is call");
@@ -113,24 +142,20 @@ public class CompanyUserController {
         return result;
     }
 
-    @PostMapping("/setPswd")
-    public Result setPswd(@RequestBody User user) {
-        logger.info("setPswd interface is call");
-        int num = companyUserService.setPswd(user);
-        Result result = new Result();
-        if (num == 1) {
-            result = result.success("修改成功");
-        } else {
-            result = result.fail("修改失败");
-        }
-        return result;
-    }
-
     @PostMapping("/bill")
     public Result selectBill(@RequestBody Time time,@RequestHeader(value = "token") String token) {
         logger.info("bill interface is call");
 
         String bill = companyUserService.selectBill(time ,token);
+
+        return Result.success("查询成功", bill);
+    }
+
+    @PostMapping("/bill_before")
+    public Result selectBill_before(@RequestBody Time time , @RequestHeader(value = "token") String token) {
+        logger.info("bill_before interface is call");
+
+        String bill = companyUserService.selectBill_before(time , token);
 
         return Result.success("查询成功", bill);
     }

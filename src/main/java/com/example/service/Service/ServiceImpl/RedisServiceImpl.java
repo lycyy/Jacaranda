@@ -24,6 +24,11 @@ public class RedisServiceImpl implements RedisService {
         ValueOperations<String, String> ops = stringRedisTemplate.opsForValue();
         ops.set(key, value,60*1, TimeUnit.SECONDS);
     }
+    @Override
+    public void setJacarandaCode(String key, String value) {
+        ValueOperations<String, String> ops = stringRedisTemplate.opsForValue();
+        ops.set(key, value,60*1, TimeUnit.SECONDS);
+    }
 
     @Override
     public void setfb(String key, String value) {

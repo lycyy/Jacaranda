@@ -7,10 +7,9 @@ import com.example.service.Bean.Out.CompanyBill;
 import com.example.service.Bean.Out.Refund;
 import com.example.service.Mapper.CompanyUserMapper;
 import com.example.service.Mapper.UserMapper;
-import com.example.service.Service.CompanyUserService;
-import com.example.service.Service.EmailService;
-import com.example.service.Service.RedisService;
-import com.example.service.Service.UserService;
+import com.example.service.Service.*;
+import com.example.service.Thread.EmailThread;
+import com.example.service.Util.ConfigurationUtil;
 import com.example.service.Util.TokenUtil;
 import com.example.service.Util.VerCodeGenerateUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -24,13 +23,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service
 public class CompanyUserServiceImpl implements CompanyUserService {
-    static String SIGN = "0960543";
+
     @Autowired
     CompanyUserMapper companyUserMapper;
     @Autowired
@@ -49,11 +49,19 @@ public class CompanyUserServiceImpl implements CompanyUserService {
     UserMapper userMapper;
     @Autowired
     CompanyInfo companyInfo;
+    @Autowired
+    ConfigurationUtil configurationUtil;
+    @Autowired
+    DingoMailService dingoMailService;
 
     ObjectMapper objectMapper = new ObjectMapper();
-
+    String salt;
     String json;
 
+    @PostConstruct
+    public void init() {
+        salt = this.configurationUtil.getPassword_salt();
+    }
     @Override
     public int Companyregister(User user) {
         String email = user.getEmail();
@@ -62,39 +70,48 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 
         int num = companyUserMapper.findUser(email);
         if (num == 0) {
-            String text = verCodeGenerateUtil.generateVerCode();
+            String text1 = verCodeGenerateUtil.generateVerCode();
+            String text2 = verCodeGenerateUtil.generateVerCode();
+
+            redisService.set(email + "v", text1);
+            redisService.setJacarandaCode(email + "JAC", text2);
             redisService.set(email + "p", password);
             redisService.set(email + "u", username);
-            redisService.set(text, email);
-            System.out.println(text);
-//            new EmailThread(user.getEmail(), "Verification code", text, emailService).start();
+            System.out.println(text1);
+            System.out.println(text2);
+            new EmailThread(user.getEmail(), "Verification code", "Register", text1, dingoMailService).start();
+            new EmailThread("945009953@qq.com", "Jacaranda Authorization code", "Verification", text2, dingoMailService).start();
             return 1;
         } else {
             return 0;
         }
     }
 
+
     @Override
-    public int verifyUser(Code code) {
+    public int verifyUser(CompanyCode companyCode) {
         StringBuffer UserID = verCodeGenerateUtil.generateUserID();
         while (companyUserMapper.findUserID(String.valueOf(UserID)) == 1) {
             UserID = verCodeGenerateUtil.generateUserID();
         }
-        String email = code.getEmail();
-        String codes = code.getCode();
+        String email = companyCode.getEmail();
+        String vcodes = companyCode.getVerification_code();
+        String acodes = companyCode.getAuthorization_code();
         String username = redisService.get(email + "u");
-        String realemails = redisService.get(codes);
-        if (email.equals(realemails)) {
-            companyInfo.setPassword(redisService.get(email + "p") + SIGN);
-            companyInfo.setCompanyID(String.valueOf(UserID));
-            companyInfo.setEmail(email);
-            companyInfo.setC_name(username);
-            companyUserMapper.addUserInfo(companyInfo);
-
-            return 1;
-        } else {
+        String vcodex = redisService.get(email + "v");
+        String acodex = redisService.get(email + "JAC");
+        if (!vcodes.equals(vcodex)) {
             return 0;
         }
+        if (!acodes.equals(acodex)) {
+            return 0;
+        }
+        companyInfo.setPassword(redisService.get(email + "p") + salt);
+        companyInfo.setCompanyID(String.valueOf(UserID));
+        companyInfo.setEmail(email);
+        companyInfo.setC_name(username);
+        companyUserMapper.addUserInfo(companyInfo);
+        return 1;
     }
 
 
@@ -106,16 +123,16 @@ public class CompanyUserServiceImpl implements CompanyUserService {
         companyInfo.setEmail(UserEmail);
         companyInfo.setPicture("R.png");
         companyInfo.setBalance("0");
-        String type = companyInfo.getType();
 
-        companyUserMapper.updateUserInfo(companyInfo.getC_Mobile(), companyInfo.getC_address(), companyInfo.getBalance(), companyInfo.getPicture(), type, UserEmail);
+
+        companyUserMapper.updateUserInfo(companyInfo.getC_Mobile(), companyInfo.getC_address(), companyInfo.getBalance(), companyInfo.getPicture(),  UserEmail);
         return 1;
     }
 
 
     @Override
     public String checkUser(User user) {
-        String password = user.getPassword() + SIGN;
+        String password = user.getPassword() + salt;
         user.setPassword(password);
         int a = companyUserMapper.checkUser(user);
         String b = companyUserMapper.checkUserInfo(user.getEmail());
@@ -179,9 +196,15 @@ public class CompanyUserServiceImpl implements CompanyUserService {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         objectMapper.setDateFormat(sdf);
 
+        for (CompanyBill bill : billList) {
+            String Payusername = userMapper.selectUserName(bill.getPayUser());
+            bill.setPayUsername(Payusername);
+            String PayuserColor = userMapper.selectUserImage(Payusername);
+            bill.setPayColor(PayuserColor);
+        }
+
         try {
             json = objectMapper.writeValueAsString(billList).replace("date", "dateString");
-            ;
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
@@ -190,24 +213,90 @@ public class CompanyUserServiceImpl implements CompanyUserService {
     }
 
     @Override
+    public String selectBill_before(Time time, String token) {
+        //从Token中获取信息
+        String times = time.getTime();
+        String userEmail = tokenUtil.getValue(token);
+        String userId = companyUserMapper.getUserId(userEmail);
+        //查询用户账单
+        List<CompanyBill> billList = companyUserMapper.selectBill_before(times, userId);
+
+        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        objectMapper.setDateFormat(sdf);
+
+        for (CompanyBill bill : billList) {
+            String Payusername = userMapper.selectUserName(bill.getPayUser());
+            bill.setPayUsername(Payusername);
+            String PayuserColor = userMapper.selectUserImage(Payusername);
+            bill.setPayColor(PayuserColor);
+        }
+
+        try {
+            json = objectMapper.writeValueAsString(billList).replace("date", "dateString");
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        return json;
+    }
+
+    @Override
+    public int createCollection(UserID userId, String token) {
+
+        Map map = new HashMap<>();
+        FlowBill flowBill = new FlowBill();
+        String receiveEmail = tokenUtil.getValue(token);
+        String receiveUser = userMapper.getCUserId(receiveEmail);
+        flowBill.setReceiveUser(receiveUser);
+        flowBill.setPayUser(userId.getUserID());
+        flowBill.setAmount(userId.getAmount());
+        String fid = verCodeGenerateUtil.generateReceipt_number();
+        try {
+            json = objectMapper.writeValueAsString(flowBill);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        redisService.set(fid, json);
+        map.put("fid", fid);
+        map.put("amount", userId.getAmount());
+
+        try {
+            json = objectMapper.writeValueAsString(map);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        webSocketService.sendMessage(json, Long.parseLong(userId.getUserID()));
+        System.out.println(json);
+        return 1;
+    }
+
+    @Override
     public int changePswd(UserPswd userPswd, String token) {
         User user = new User();
         String receiveEmail = tokenUtil.getValue(token);
         user.setEmail(receiveEmail);
-        user.setPassword(userPswd.getOldPswd() + SIGN);
+        user.setPassword(userPswd.getOldPswd() + salt);
         int a = companyUserMapper.checkUser(user);
         if (a != 0) {
-            companyUserMapper.changePswd(userPswd.getNewPswd() + SIGN, receiveEmail);
+            companyUserMapper.changePswd(userPswd.getNewPswd() + salt, receiveEmail);
             return 1;
         } else {
             return 0;
         }
+
     }
 
+
     @Override
-    public int setPswd(User user) {
-        String email = user.getEmail();
-        String pswd = user.getPassword() + SIGN;
+    public int testPswdcode(Code code) {
+        String email = code.getEmail();
+        String codes = code.getCode();
+        String codex = redisService.get(email + "v");
+        if (!codes.equals(codex)) {
+            return 0;
+        }
+        String pswd = redisService.get(email + "pswd") + salt;
         if (companyUserMapper.findUser(email) != 0) {
             companyUserMapper.changePswd(pswd, email);
             return 1;
@@ -215,6 +304,18 @@ public class CompanyUserServiceImpl implements CompanyUserService {
             return 0;
         }
     }
+
+
+    @Override
+    public int setPswd(User user) {
+        String email = user.getEmail();
+        String text = verCodeGenerateUtil.generateVerCode();
+        redisService.set(email + "v", text);
+        redisService.set(email + "pswd", user.getPassword());
+        new EmailThread(user.getEmail(), "Verification code", "Changing your password", text, dingoMailService).start();
+        return 1;
+    }
+
 
     @Override
     public int changeUsername(Usernames usernames, String token) {

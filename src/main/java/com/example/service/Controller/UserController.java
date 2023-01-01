@@ -183,16 +183,7 @@ public class UserController {
         return Result.success("查询成功", balanceOf);
     }
 
-    @PostMapping("/transfer")
-    public Result transfer(@RequestBody UserID userID, @RequestHeader(value = "token") String token) {
-        logger.info("transfer interface is call");
-        Result result = new Result();
-        int num = userService.Verify(userID, token);
-        if (num == 1) {
-            result = result.success("等待输入密码");
-        }
-        return result;
-    }
+
 
     @PostMapping("/checkTransferTo")
     public Result checkPayPswd(@RequestBody PIN pin, @RequestHeader(value = "token") String token) {
@@ -286,7 +277,7 @@ public class UserController {
     }
 
     //用户信息
-    @PostMapping("/getInfo")
+    @PostMapping("/getColor")
     public Result getInfo(@RequestHeader(value = "token") String token) {
         logger.info("getInfo interface is call");
         String json = userService.getInfo(token);

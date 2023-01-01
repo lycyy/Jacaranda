@@ -41,10 +41,12 @@ public class AccesstokenInterceptor implements HandlerInterceptor {
         ObjectMapper objectMapper = new ObjectMapper();
         token = tokenUtil.getToken(request);
         Enumeration headerNames = request.getHeaderNames();
-        while (headerNames.hasMoreElements()) {
-            String headerName = (String) headerNames.nextElement();
-            logger.info("Header Name - " + headerName + ", Value - " + request.getHeader(headerName));
-        }
+        logger.info("Header Name - " + "user-agent" + ", Value - " + request.getHeader("user-agent"));
+        logger.info("Header Name - " + "token" + ", Value - " + request.getHeader("token"));
+//        while (headerNames.hasMoreElements()) {
+//            String headerName = (String) headerNames.nextElement();
+//            logger.info("Header Name - " + headerName + ", Value - " + request.getHeader(headerName));
+//        }
 
         if (StringUtils.isEmpty(token)) {
             map.put("msg", "None token");

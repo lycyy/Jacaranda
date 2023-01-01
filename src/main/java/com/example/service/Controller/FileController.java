@@ -1,6 +1,7 @@
 package com.example.service.Controller;
 
 
+import com.example.service.Bean.In.Images;
 import com.example.service.Bean.In.User;
 import com.example.service.Bean.In.UserInfo;
 import com.example.service.Bean.In.Usernames;
@@ -27,23 +28,10 @@ public class FileController {
 
     Logger logger = LoggerFactory.getLogger(getClass());
 
-    @PostMapping(value = "/HeadUpload")
-    public Result upload(@RequestParam MultipartFile file,@RequestHeader(value = "token") String token) {
-        logger.info("Upload interface is call");
-        boolean b = fileService.upload(file, token);
-        Result result = new Result();
-        if (b) {
-            result = result.success("上传成功");
-        }else {
-            result = result.fail("上传失败");
-        }
-        return result;
 
-    }
-
-    @PostMapping(value = "/C_Upload")
+    @PostMapping(value = "/C_PictureUpload")
     public Result C_upload(@RequestParam MultipartFile file,@RequestHeader(value = "token") String token) {
-        logger.info("C_Upload interface is call");
+        logger.info("C_PictureUpload interface is call");
         boolean b = fileService.Companyupload(file, token);
         Result result = new Result();
         if (b) {
@@ -70,17 +58,12 @@ public class FileController {
     }
 
 
-    @PostMapping(value = "/Head_Download")
-    public ResponseEntity<FileSystemResource> downloadHead(@RequestBody Usernames usernames){
-        logger.info("Head_Download interface is call");
-        ResponseEntity<FileSystemResource> file = fileService.download(usernames.getUsername());
-        return file;
-    }
+
 
     @PostMapping(value = "/Picture_Download")
-    public ResponseEntity<FileSystemResource> downloadPicture(@RequestBody Usernames usernames){
+    public ResponseEntity<FileSystemResource> downloadPicture(@RequestBody Images images){
         logger.info("Picture_Download interface is call");
-        ResponseEntity<FileSystemResource> file = fileService.downloadCompany(usernames.getUsername());
+        ResponseEntity<FileSystemResource> file = fileService.downloadCompany(images.getImages());
         return file;
     }
 

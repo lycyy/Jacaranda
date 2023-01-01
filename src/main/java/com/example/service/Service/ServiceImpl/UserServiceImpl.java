@@ -70,7 +70,7 @@ public class UserServiceImpl implements UserService {
 
     @PostConstruct
     public void init() {
-        salt = this.configurationUtil.getToken_key();
+        salt = this.configurationUtil.getPassword_salt();
         Stripe_apikey = this.configurationUtil.getStripe_apiKey();
     }
 
@@ -310,6 +310,11 @@ public class UserServiceImpl implements UserService {
             bill.setReceiveUsername(Receiveusername);
             String Payusername = userMapper.selectUserName(bill.getPayUser());
             bill.setPayUsername(Payusername);
+
+            String ReceiveuserColor = userMapper.selectUserImage(Receiveusername);
+            bill.setReceiveColor(ReceiveuserColor);
+            String PayuserColor = userMapper.selectUserImage(Payusername);
+            bill.setPayColor(PayuserColor);
             if (bill.getReceiveUser().equals(bill.getPayUser())) {
                 bill.setType("top-up");
             } else if (bill.getReceiveUser().equals(userId)) {
@@ -349,35 +354,7 @@ public class UserServiceImpl implements UserService {
     }
 
     //发送付款请求
-    @Override
-    public int Verify(UserID userId, String token) {
 
-        Map map = new HashMap<>();
-        FlowBill flowBill = new FlowBill();
-        String receiveEmail = tokenUtil.getValue(token);
-        String receiveUser = userMapper.getCUserId(receiveEmail);
-        flowBill.setReceiveUser(receiveUser);
-        flowBill.setPayUser(userId.getUserID());
-        flowBill.setAmount(userId.getAmount());
-        String fid = verCodeGenerateUtil.generateReceipt_number();
-        try {
-            json = objectMapper.writeValueAsString(flowBill);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        redisService.set(fid, json);
-        map.put("fid", fid);
-        map.put("amount", userId.getAmount());
-
-        try {
-            json = objectMapper.writeValueAsString(map);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        webSocketService.sendMessage(json, Long.parseLong(userId.getUserID()));
-        System.out.println(json);
-        return 1;
-    }
 
 
 
@@ -449,8 +426,10 @@ public class UserServiceImpl implements UserService {
                 return "-1";
             } else {
                 String username = userMapper.selectUserName(userId.getUserID());
+                String color = userMapper.selectUserImage(username);
                 Map<String, Object> map = new HashMap<>();
                 map.put("UserName", username);
+                map.put("Image",color);
                 try {
                     json = objectMapper.writeValueAsString(map);
                 } catch (JsonProcessingException e) {
@@ -829,9 +808,8 @@ public class UserServiceImpl implements UserService {
             String receiveEmail = tokenUtil.getValue(token);
             UserInfo userInfo = userMapper.getUserInfo(receiveEmail);
             Map<String, Object> map = new HashMap<>();
-            map.put("UserID", userInfo.getUserID());
-            map.put("Email", userInfo.getEmail());
             map.put("UserName", userInfo.getUsername());
+            map.put("Image",userInfo.getImage());
             try {
                 json = objectMapper.writeValueAsString(map);
             } catch (JsonProcessingException e) {

@@ -50,7 +50,6 @@ public class DingoMailServiceImpl implements DingoMailService {
             EmailResponse response = emailApi.create(newEmail, keyid);
             System.out.println(response);
         } catch (ApiException e) {
-            System.out.printf("ApiException caught: %s\n", e.getMessage());
         }
     }
 }
