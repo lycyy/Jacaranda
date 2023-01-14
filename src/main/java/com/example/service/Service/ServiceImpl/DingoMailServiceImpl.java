@@ -23,10 +23,10 @@ public class DingoMailServiceImpl implements DingoMailService {
         Authentication auth;
 
         auth = apiClient.getAuthentication("Key Secret");
-        ((ApiKeyAuth) auth).setApiKey("UIVECUPUKP6QVTRAWAYYWZ3FX3U52JRLQMXPATDBUPBGJ");
+        ((ApiKeyAuth) auth).setApiKey("");
 
         auth = apiClient.getAuthentication("Key ID");
-        ((ApiKeyAuth) auth).setApiKey("63916283c5433876597d6482");
+        ((ApiKeyAuth) auth).setApiKey("");
     }
 
     public void CreateEmail(String to, String subject, String operation, String verificationCode) {
